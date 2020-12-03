@@ -26,7 +26,6 @@ import org.jabref.model.study.FetchResult;
 import org.jabref.model.study.QueryResult;
 import org.jabref.model.study.Study;
 import org.jabref.model.study.StudyDatabase;
-import org.jabref.model.study.StudyQuery;
 import org.jabref.model.util.FileUpdateMonitor;
 import org.jabref.preferences.JabRefPreferences;
 
@@ -66,7 +65,7 @@ class StudyRepository {
      * @throws IOException              Thrown if the given repository does not exists, or the study definition file does not exist
      * @throws ParseException           Problem parsing the study definition file.
      */
-    public StudyRepository(Path pathToRepository, GitHandler gitHandler, ImportFormatPreferences importFormatPreferences, FileUpdateMonitor fileUpdateMonitor, SavePreferences savePreferences, BibEntryTypesManager bibEntryTypesManager) throws IOException, ParseException, GitAPIException {
+    public StudyRepository(Path pathToRepository, GitHandler gitHandler, ImportFormatPreferences importFormatPreferences, FileUpdateMonitor fileUpdateMonitor, SavePreferences savePreferences, BibEntryTypesManager bibEntryTypesManager) throws IOException {
         this.repositoryPath = pathToRepository;
         this.gitHandler = gitHandler;
         try {
@@ -129,7 +128,6 @@ class StudyRepository {
     public List<String> getSearchQueryStrings() {
         return study.getQueries()
                     .parallelStream()
-                    .map(StudyQuery::getQuery)
                     .collect(Collectors.toList());
     }
 

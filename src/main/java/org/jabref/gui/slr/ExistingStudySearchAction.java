@@ -1,12 +1,15 @@
-package org.jabref.gui;
+package org.jabref.gui.slr;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 
+import org.jabref.gui.DialogService;
+import org.jabref.gui.JabRefFrame;
 import org.jabref.gui.actions.SimpleCommand;
 import org.jabref.gui.importer.actions.OpenDatabaseAction;
 import org.jabref.gui.util.BackgroundTask;
+import org.jabref.gui.util.DirectoryDialogConfiguration;
 import org.jabref.gui.util.FileDialogConfiguration;
 import org.jabref.gui.util.TaskExecutor;
 import org.jabref.logic.crawler.Crawler;
@@ -21,37 +24,49 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class StartLiteratureReviewAction extends SimpleCommand {
-    private static final Logger LOGGER = LoggerFactory.getLogger(StartLiteratureReviewAction.class);
+public class ExistingStudySearchAction extends SimpleCommand {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExistingStudySearchAction.class);
     private final JabRefFrame frame;
-    private final DialogService dialogService;
+    protected final DialogService dialogService;
     private final FileUpdateMonitor fileUpdateMonitor;
     private final Path workingDirectory;
     private final TaskExecutor taskExecutor;
 
-    public StartLiteratureReviewAction(JabRefFrame frame, FileUpdateMonitor fileUpdateMonitor, Path standardWorkingDirectory, TaskExecutor taskExecutor) {
+    public ExistingStudySearchAction(JabRefFrame frame, FileUpdateMonitor fileUpdateMonitor, TaskExecutor taskExecutor) {
         this.frame = frame;
         this.dialogService = frame.getDialogService();
         this.fileUpdateMonitor = fileUpdateMonitor;
-        this.workingDirectory = getInitialDirectory(standardWorkingDirectory);
+        this.workingDirectory = getInitialDirectory(frame.prefs().getWorkingDir());
         this.taskExecutor = taskExecutor;
     }
 
     @Override
     public void execute() {
-        FileDialogConfiguration fileDialogConfiguration = new FileDialogConfiguration.Builder()
+        crawl();
+    }
+
+    public void crawl() {
+        DirectoryDialogConfiguration directoryDialogConfiguration = new DirectoryDialogConfiguration.Builder()
                 .withInitialDirectory(workingDirectory)
                 .build();
 
-        Optional<Path> studyDefinitionFile = dialogService.showFileOpenDialog(fileDialogConfiguration);
-        if (studyDefinitionFile.isEmpty()) {
+
+        Optional<Path> studyRepositoryRoot = dialogService.showDirectorySelectionDialog(directoryDialogConfiguration);
+        if (studyRepositoryRoot.isEmpty()) {
             // Do nothing if selection was canceled
+            return;
+        }
+
+        try {
+            setupRepository(studyRepositoryRoot.get());
+        } catch (IOException | GitAPIException e) {
+            dialogService.showErrorDialogAndWait(Localization.lang("Study repository could not be created"), e);
             return;
         }
         final Crawler crawler;
         try {
-            crawler = new Crawler(studyDefinitionFile.get(), new GitHandler(studyDefinitionFile.get().getParent()), fileUpdateMonitor, JabRefPreferences.getInstance().getImportFormatPreferences(), JabRefPreferences.getInstance().getSavePreferences(), new BibEntryTypesManager());
-        } catch (IOException | ParseException | GitAPIException e) {
+            crawler = new Crawler(studyRepositoryRoot.get(), new GitHandler(studyRepositoryRoot.get()), fileUpdateMonitor, JabRefPreferences.getInstance().getImportFormatPreferences(), JabRefPreferences.getInstance().getSavePreferences(), new BibEntryTypesManager());
+        } catch (IOException e) {
             LOGGER.error("Error during reading of study definition file.", e);
             dialogService.showErrorDialogAndWait(Localization.lang("Error during reading of study definition file."), e);
             return;
@@ -64,8 +79,16 @@ public class StartLiteratureReviewAction extends SimpleCommand {
                           LOGGER.error("Error during persistence of crawling results.");
                           dialogService.showErrorDialogAndWait(Localization.lang("Error during persistence of crawling results."), e);
                       })
-                      .onSuccess(unused -> new OpenDatabaseAction(frame).openFile(Path.of(studyDefinitionFile.get().getParent().toString(), "studyResult.bib"), true))
+                      .onSuccess(unused -> new OpenDatabaseAction(frame).openFile(Path.of(studyRepositoryRoot.get().getParent().toString(), "studyResult.bib"), true))
                       .executeWith(taskExecutor);
+    }
+
+    protected void setupRepository(Path studyRepositoryRoot) throws IOException, GitAPIException {
+        // Do nothing as repository is already setup
+    }
+
+    protected Boolean newStudy() {
+        return false;
     }
 
     /**

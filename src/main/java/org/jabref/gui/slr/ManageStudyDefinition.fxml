@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonType?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DialogPane?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<DialogPane
+        minHeight="0.0"
+        minWidth="-Infinity"
+        prefWidth="750.0"
+        xmlns="http://javafx.com/javafx/11.0.1"
+        xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="org.jabref.gui.slr.ManageStudyDefinitionView">
+    <ButtonType
+            fx:id="saveButtonType"
+            buttonData="OK_DONE"
+            text="%Save"/>
+    <ButtonType
+            fx:constant="CANCEL"/>
+    <content>
+        <BorderPane
+                minHeight="0.0"
+                minWidth="0.0">
+            <center>
+                <TabPane
+                        tabClosingPolicy="UNAVAILABLE"
+                        BorderPane.alignment="CENTER">
+                    <Tab text="%Author and Title">
+                        <AnchorPane
+                                minHeight="0.0"
+                                minWidth="0.0">
+                            <VBox minHeight="0.0"
+                                  minWidth="0.0"
+                                  spacing="20.0"
+                                  AnchorPane.bottomAnchor="0.0"
+                                  AnchorPane.leftAnchor="0.0"
+                                  AnchorPane.rightAnchor="0.0"
+                                  AnchorPane.topAnchor="0.0">
+                                <HBox alignment="CENTER_LEFT"
+                                      spacing="20.0">
+                                    <Label text="%Study Title:"/>
+                                    <TextField
+                                            fx:id="studyTitle"
+                                            HBox.hgrow="ALWAYS"/>
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT"
+                                      spacing="20.0">
+                                    <Label text="%New Author:"/>
+                                    <TextField
+                                            fx:id="newAuthor"
+                                            HBox.hgrow="ALWAYS"/>
+                                    <Button fx:id="addAuthorButton"
+                                            onAction="#addAuthor"/>
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT">
+                                    <ListView
+                                            fx:id="authorListView"
+                                            prefHeight="150.0"
+                                            HBox.hgrow="ALWAYS"/>
+                                </HBox>
+                                <padding>
+                                    <Insets bottom="20.0"
+                                            left="20.0"
+                                            right="20.0"
+                                            top="20.0"/>
+                                </padding>
+                            </VBox>
+                        </AnchorPane>
+                    </Tab>
+                    <Tab text="%Research Questions">
+                        <AnchorPane
+                                minHeight="0.0"
+                                minWidth="0.0">
+                            <VBox minHeight="0.0"
+                                  minWidth="0.0"
+                                  spacing="20.0"
+                                  AnchorPane.bottomAnchor="0.0"
+                                  AnchorPane.leftAnchor="0.0"
+                                  AnchorPane.rightAnchor="0.0"
+                                  AnchorPane.topAnchor="0.0">
+                                <HBox alignment="CENTER_LEFT"
+                                      spacing="20.0">
+                                    <Label text="%New Research Question:"/>
+                                    <TextField
+                                            fx:id="newResearchQuestion"
+                                            HBox.hgrow="ALWAYS"/>
+                                    <Button fx:id="addResearchQuestionButton"
+                                            onAction="#addResearchQuestion"/>
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT">
+                                    <ListView
+                                            fx:id="questionListView"
+                                            prefHeight="150.0"
+                                            HBox.hgrow="ALWAYS"/>
+                                </HBox>
+                                <padding>
+                                    <Insets bottom="20.0"
+                                            left="20.0"
+                                            right="20.0"
+                                            top="20.0"/>
+                                </padding>
+                            </VBox>
+                        </AnchorPane>
+                    </Tab>
+                    <Tab text="%Queries">
+                        <AnchorPane
+                                minHeight="0.0"
+                                minWidth="0.0">
+                            <VBox minHeight="0.0"
+                                  minWidth="0.0"
+                                  spacing="20.0"
+                                  AnchorPane.bottomAnchor="0.0"
+                                  AnchorPane.leftAnchor="0.0"
+                                  AnchorPane.rightAnchor="0.0"
+                                  AnchorPane.topAnchor="0.0">
+                                <HBox alignment="CENTER_LEFT"
+                                      spacing="20.0">
+                                    <Label text="%New Query:"/>
+                                    <TextField
+                                            fx:id="newQuery"
+                                            HBox.hgrow="ALWAYS"/>
+                                    <Button fx:id="addQueryButton"
+                                            onAction="#addQuery"/>
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT">
+                                    <ListView
+                                            fx:id="queryListView"
+                                            prefHeight="150.0"
+                                            HBox.hgrow="ALWAYS"/>
+                                </HBox>
+                                <padding>
+                                    <Insets bottom="20.0"
+                                            left="20.0"
+                                            right="20.0"
+                                            top="20.0"/>
+                                </padding>
+                            </VBox>
+                        </AnchorPane>
+                    </Tab>
+                    <Tab text="%Databases">
+                        <AnchorPane
+                                minHeight="0.0"
+                                minWidth="0.0">
+                            <VBox minHeight="0.0"
+                                  minWidth="0.0"
+                                  spacing="20.0"
+                                  AnchorPane.bottomAnchor="0.0"
+                                  AnchorPane.leftAnchor="0.0"
+                                  AnchorPane.rightAnchor="0.0"
+                                  AnchorPane.topAnchor="0.0">
+                                <HBox alignment="CENTER_LEFT"
+                                      spacing="20.0">
+                                    <Label text="%New Database:"/>
+                                    <ComboBox
+                                            fx:id="databaseSelectorComboBox"
+                                            HBox.hgrow="ALWAYS"/>
+                                    <Button fx:id="addDatabaseButton"
+                                            onAction="#addDatabase"/>
+                                </HBox>
+                                <HBox alignment="CENTER_LEFT">
+                                    <TableView
+                                            fx:id="databaseTableView"
+                                            prefHeight="150.0"
+                                            HBox.hgrow="ALWAYS">
+                                        <columns>
+                                            <TableColumn
+                                                    fx:id="databaseTableEntry"
+                                                    text="%Database"/>
+                                            <TableColumn
+                                                    fx:id="enabledTableEntry"
+                                                    text="%Enabled"/>
+                                            <TableColumn
+                                                    fx:id="removeTableEntry"
+                                                    text="%Remove"/>
+                                        </columns>
+                                    </TableView>
+                                </HBox>
+                                <padding>
+                                    <Insets bottom="20.0"
+                                            left="20.0"
+                                            right="20.0"
+                                            top="20.0"/>
+                                </padding>
+                            </VBox>
+                        </AnchorPane>
+                    </Tab>
+                </TabPane>
+            </center>
+            <bottom>
+                <Label fx:id="disabledSave"
+                      text="%At least one query and database required."
+                      BorderPane.alignment="CENTER"/>
+            </bottom>
+        </BorderPane>
+    </content>
+</DialogPane>

@@ -35,7 +35,6 @@ class CrawlerTest {
     GitHandler gitHandler = mock(GitHandler.class, Answers.RETURNS_DEFAULTS);
     String hashCodeQuantum = String.valueOf("Quantum".hashCode());
     String hashCodeCloudComputing = String.valueOf("Cloud Computing".hashCode());
-    String hashCodeSoftwareEngineering = String.valueOf("\"Software Engineering\"".hashCode());
 
     @Test
     public void testWhetherAllFilesAreCreated() throws Exception {
@@ -65,7 +64,7 @@ class CrawlerTest {
     }
 
     private Path getPathToStudyDefinitionFile() {
-        return tempRepositoryDirectory.resolve("study.yml");
+        return tempRepositoryDirectory;
     }
 
     /**
