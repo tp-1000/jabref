@@ -1028,6 +1028,7 @@ public class JabRefFrame extends BorderPane {
 
         libraryTab.setOnCloseRequest(event -> {
             closeTab(libraryTab);
+            libraryTab.getDataLoadingTask().cancel();
             event.consume();
         });
 
