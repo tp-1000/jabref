@@ -5,7 +5,6 @@ import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -37,7 +36,7 @@ import com.airhacks.afterburner.views.ViewLoader;
  * defined in the FXML file.
  */
 public class ManageStudyDefinitionView extends BaseDialog<Study> {
-    private ManageStudyDefinitionViewModel viewModel;
+    private final ManageStudyDefinitionViewModel viewModel;
 
     @FXML private TextField studyTitle;
     @FXML private TextField newAuthor;
@@ -46,12 +45,12 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
     @FXML private ComboBox<StudyDatabase> databaseSelectorComboBox;
 
     @FXML private Label disabledSave;
+    private final Button saveButton;
 
     @FXML private Button addAuthorButton;
     @FXML private Button addResearchQuestionButton;
     @FXML private Button addQueryButton;
     @FXML private Button addDatabaseButton;
-    private Button saveButton;
     @FXML private ButtonType saveButtonType;
 
     @FXML private ListView<String> authorListView;
@@ -63,11 +62,6 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
     @FXML private TableColumn<StudyDatabase, StudyDatabase> enabledTableEntry;
     @FXML private TableColumn<StudyDatabase, StudyDatabase> removeTableEntry;
 
-    /**
-     * If a study is edited
-     *
-     * @param study
-     */
     public ManageStudyDefinitionView(Study study, ImportFormatPreferences importFormatPreferences) {
         this.setTitle(Localization.lang("Manage study definition"));
         viewModel = new ManageStudyDefinitionViewModel(study, importFormatPreferences);
@@ -141,7 +135,7 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
         removeTableEntry.setCellValueFactory(param -> new ReadOnlyObjectWrapper<>(param.getValue()));
 
         enabledTableEntry.setCellFactory(param -> new TableCell<>() {
-            CheckBox checkBox = new CheckBox();
+            final CheckBox checkBox = new CheckBox();
 
             @Override
             protected void updateItem(StudyDatabase database, boolean empty) {
@@ -158,7 +152,7 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
             }
         });
         removeTableEntry.setCellFactory(param -> new TableCell<>() {
-            Button deleteButton = new Button();
+            final Button deleteButton = new Button();
 
             @Override
             protected void updateItem(StudyDatabase database, boolean empty) {
@@ -184,7 +178,7 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
 
     private void registerListenersAndBindings() {
         // Listen whether any databases are removed from selection -> Add back to the database selector
-        databaseTableView.getItems().addListener((ListChangeListener<StudyDatabase>) c -> viewModel.handleChangeToDatabases(c));
+        databaseTableView.getItems().addListener(viewModel::handleChangeToDatabases);
         studyTitle.textProperty().bindBidirectional(viewModel.titleProperty());
         saveButton.disableProperty().bind(Bindings.or(Bindings.isEmpty(viewModel.getQueries()), Bindings.isEmpty(viewModel.getDatabases())));
         disabledSave.visibleProperty().bind(saveButton.disabledProperty());

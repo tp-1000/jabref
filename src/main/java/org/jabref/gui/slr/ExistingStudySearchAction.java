@@ -10,11 +10,9 @@ import org.jabref.gui.actions.SimpleCommand;
 import org.jabref.gui.importer.actions.OpenDatabaseAction;
 import org.jabref.gui.util.BackgroundTask;
 import org.jabref.gui.util.DirectoryDialogConfiguration;
-import org.jabref.gui.util.FileDialogConfiguration;
 import org.jabref.gui.util.TaskExecutor;
 import org.jabref.logic.crawler.Crawler;
 import org.jabref.logic.crawler.git.GitHandler;
-import org.jabref.logic.importer.ParseException;
 import org.jabref.logic.l10n.Localization;
 import org.jabref.model.entry.BibEntryTypesManager;
 import org.jabref.model.util.FileUpdateMonitor;
@@ -26,8 +24,10 @@ import org.slf4j.LoggerFactory;
 
 public class ExistingStudySearchAction extends SimpleCommand {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExistingStudySearchAction.class);
-    private final JabRefFrame frame;
+
     protected final DialogService dialogService;
+
+    private final JabRefFrame frame;
     private final FileUpdateMonitor fileUpdateMonitor;
     private final Path workingDirectory;
     private final TaskExecutor taskExecutor;
@@ -49,7 +49,6 @@ public class ExistingStudySearchAction extends SimpleCommand {
         DirectoryDialogConfiguration directoryDialogConfiguration = new DirectoryDialogConfiguration.Builder()
                 .withInitialDirectory(workingDirectory)
                 .build();
-
 
         Optional<Path> studyRepositoryRoot = dialogService.showDirectorySelectionDialog(directoryDialogConfiguration);
         if (studyRepositoryRoot.isEmpty()) {
@@ -79,16 +78,15 @@ public class ExistingStudySearchAction extends SimpleCommand {
                           LOGGER.error("Error during persistence of crawling results.");
                           dialogService.showErrorDialogAndWait(Localization.lang("Error during persistence of crawling results."), e);
                       })
-                      .onSuccess(unused -> new OpenDatabaseAction(frame).openFile(Path.of(studyRepositoryRoot.get().getParent().toString(), "studyResult.bib"), true))
+                      .onSuccess(unused -> new OpenDatabaseAction(frame).openFile(Path.of(studyRepositoryRoot.get().toString(), "studyResult.bib"), true))
                       .executeWith(taskExecutor);
     }
 
+    /**
+     * Hook for setting up the repository
+     */
     protected void setupRepository(Path studyRepositoryRoot) throws IOException, GitAPIException {
         // Do nothing as repository is already setup
-    }
-
-    protected Boolean newStudy() {
-        return false;
     }
 
     /**

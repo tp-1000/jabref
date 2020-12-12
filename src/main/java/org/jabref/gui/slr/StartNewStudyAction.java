@@ -32,10 +32,6 @@ public class StartNewStudyAction extends ExistingStudySearchAction {
            .call();
     }
 
-    protected Boolean newStudy() {
-        return true;
-    }
-
     @Override
     public void execute() {
         Optional<Study> createdStudy = dialogService.showCustomDialogAndWait(new ManageStudyDefinitionView(null, importFormatPreferences));

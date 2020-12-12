@@ -16,13 +16,9 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Text?>
 <DialogPane
-        minHeight="0.0"
-        minWidth="-Infinity"
-        prefWidth="750.0"
-        xmlns="http://javafx.com/javafx/11.0.1"
         xmlns:fx="http://javafx.com/fxml/1"
+        xmlns="http://javafx.com/javafx/11.0.1"
         fx:controller="org.jabref.gui.slr.ManageStudyDefinitionView">
     <ButtonType
             fx:id="saveButtonType"
@@ -31,20 +27,14 @@
     <ButtonType
             fx:constant="CANCEL"/>
     <content>
-        <BorderPane
-                minHeight="0.0"
-                minWidth="0.0">
+        <BorderPane>
             <center>
                 <TabPane
                         tabClosingPolicy="UNAVAILABLE"
                         BorderPane.alignment="CENTER">
                     <Tab text="%Author and Title">
-                        <AnchorPane
-                                minHeight="0.0"
-                                minWidth="0.0">
-                            <VBox minHeight="0.0"
-                                  minWidth="0.0"
-                                  spacing="20.0"
+                        <AnchorPane>
+                            <VBox spacing="20.0"
                                   AnchorPane.bottomAnchor="0.0"
                                   AnchorPane.leftAnchor="0.0"
                                   AnchorPane.rightAnchor="0.0"
@@ -68,7 +58,6 @@
                                 <HBox alignment="CENTER_LEFT">
                                     <ListView
                                             fx:id="authorListView"
-                                            prefHeight="150.0"
                                             HBox.hgrow="ALWAYS"/>
                                 </HBox>
                                 <padding>
@@ -81,12 +70,8 @@
                         </AnchorPane>
                     </Tab>
                     <Tab text="%Research Questions">
-                        <AnchorPane
-                                minHeight="0.0"
-                                minWidth="0.0">
-                            <VBox minHeight="0.0"
-                                  minWidth="0.0"
-                                  spacing="20.0"
+                        <AnchorPane>
+                            <VBox spacing="20.0"
                                   AnchorPane.bottomAnchor="0.0"
                                   AnchorPane.leftAnchor="0.0"
                                   AnchorPane.rightAnchor="0.0"
@@ -103,7 +88,6 @@
                                 <HBox alignment="CENTER_LEFT">
                                     <ListView
                                             fx:id="questionListView"
-                                            prefHeight="150.0"
                                             HBox.hgrow="ALWAYS"/>
                                 </HBox>
                                 <padding>
@@ -116,12 +100,8 @@
                         </AnchorPane>
                     </Tab>
                     <Tab text="%Queries">
-                        <AnchorPane
-                                minHeight="0.0"
-                                minWidth="0.0">
-                            <VBox minHeight="0.0"
-                                  minWidth="0.0"
-                                  spacing="20.0"
+                        <AnchorPane>
+                            <VBox spacing="20.0"
                                   AnchorPane.bottomAnchor="0.0"
                                   AnchorPane.leftAnchor="0.0"
                                   AnchorPane.rightAnchor="0.0"
@@ -131,14 +111,19 @@
                                     <Label text="%New Query:"/>
                                     <TextField
                                             fx:id="newQuery"
+                                            promptText="rain &quot;water vapor&quot; condensation ..."
                                             HBox.hgrow="ALWAYS"/>
                                     <Button fx:id="addQueryButton"
                                             onAction="#addQuery"/>
                                 </HBox>
+                                <HBox>
+                                    <Label prefHeight="31.0"
+                                           prefWidth="359.0"
+                                           text="%Terms are all ANDed and are seperated by spaces. For phrases wrap them in double quotes"/>
+                                </HBox>
                                 <HBox alignment="CENTER_LEFT">
                                     <ListView
                                             fx:id="queryListView"
-                                            prefHeight="150.0"
                                             HBox.hgrow="ALWAYS"/>
                                 </HBox>
                                 <padding>
@@ -151,12 +136,8 @@
                         </AnchorPane>
                     </Tab>
                     <Tab text="%Databases">
-                        <AnchorPane
-                                minHeight="0.0"
-                                minWidth="0.0">
-                            <VBox minHeight="0.0"
-                                  minWidth="0.0"
-                                  spacing="20.0"
+                        <AnchorPane>
+                            <VBox spacing="20.0"
                                   AnchorPane.bottomAnchor="0.0"
                                   AnchorPane.leftAnchor="0.0"
                                   AnchorPane.rightAnchor="0.0"
@@ -173,7 +154,6 @@
                                 <HBox alignment="CENTER_LEFT">
                                     <TableView
                                             fx:id="databaseTableView"
-                                            prefHeight="150.0"
                                             HBox.hgrow="ALWAYS">
                                         <columns>
                                             <TableColumn
@@ -201,8 +181,8 @@
             </center>
             <bottom>
                 <Label fx:id="disabledSave"
-                      text="%At least one query and database required."
-                      BorderPane.alignment="CENTER"/>
+                       text="%At least one query and database required."
+                       BorderPane.alignment="CENTER"/>
             </bottom>
         </BorderPane>
     </content>
