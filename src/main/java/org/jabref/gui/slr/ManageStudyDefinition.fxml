@@ -116,11 +116,6 @@
                                     <Button fx:id="addQueryButton"
                                             onAction="#addQuery"/>
                                 </HBox>
-                                <HBox>
-                                    <Label prefHeight="31.0"
-                                           prefWidth="359.0"
-                                           text="%Terms are all ANDed and are seperated by spaces. For phrases wrap them in double quotes"/>
-                                </HBox>
                                 <HBox alignment="CENTER_LEFT">
                                     <ListView
                                             fx:id="queryListView"

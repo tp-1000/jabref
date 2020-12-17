@@ -70,6 +70,7 @@ public class ExistingStudySearchAction extends SimpleCommand {
             dialogService.showErrorDialogAndWait(Localization.lang("Error during reading of study definition file."), e);
             return;
         }
+        dialogService.notify(Localization.lang("Searching"));
         BackgroundTask.wrap(() -> {
             crawler.performCrawl();
             return 0; // Return any value to make this a callable instead of a runnable. This allows throwing exceptions.
