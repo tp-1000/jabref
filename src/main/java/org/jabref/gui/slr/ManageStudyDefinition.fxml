@@ -17,8 +17,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <DialogPane
+        xmlns="http://javafx.com/javafx/15.0.1"
         xmlns:fx="http://javafx.com/fxml/1"
-        xmlns="http://javafx.com/javafx/11.0.1"
         fx:controller="org.jabref.gui.slr.ManageStudyDefinitionView">
     <ButtonType
             fx:id="saveButtonType"
@@ -109,6 +109,7 @@
                                 <HBox alignment="CENTER_LEFT"
                                       spacing="20.0">
                                     <Label text="%New Query:"/>
+                                    <Label fx:id="helpIcon"/>
                                     <TextField
                                             fx:id="newQuery"
                                             promptText="rain &quot;water vapor&quot; condensation ..."
@@ -174,11 +175,6 @@
                     </Tab>
                 </TabPane>
             </center>
-            <bottom>
-                <Label fx:id="disabledSave"
-                       text="%At least one query and database required."
-                       BorderPane.alignment="CENTER"/>
-            </bottom>
         </BorderPane>
     </content>
 </DialogPane>

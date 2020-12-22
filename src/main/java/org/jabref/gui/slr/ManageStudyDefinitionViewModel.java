@@ -1,9 +1,6 @@
 package org.jabref.gui.slr;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -25,13 +22,13 @@ import org.jabref.model.study.StudyDatabase;
  * To visualize the model one can bind the properties to UI elements.
  */
 public class ManageStudyDefinitionViewModel {
-    private StringProperty title = new SimpleStringProperty();
-    private ObservableList<String> authors = FXCollections.observableArrayList();
-    private ObservableList<String> researchQuestions = FXCollections.observableArrayList();
-    private ObservableList<String> queries = FXCollections.observableArrayList();
-    private ObservableList<StudyDatabase> databases = FXCollections.observableArrayList();
+    private final StringProperty title = new SimpleStringProperty();
+    private final ObservableList<String> authors = FXCollections.observableArrayList();
+    private final ObservableList<String> researchQuestions = FXCollections.observableArrayList();
+    private final ObservableList<String> queries = FXCollections.observableArrayList();
+    private final ObservableList<StudyDatabase> databases = FXCollections.observableArrayList();
     // Hold the complement of databases for the selector
-    private ObservableList<StudyDatabase> nonSelectedDatabases = FXCollections.observableArrayList();
+    private final ObservableList<StudyDatabase> nonSelectedDatabases = FXCollections.observableArrayList();
     private Study study;
 
     public ManageStudyDefinitionViewModel(Study study, ImportFormatPreferences importFormatPreferences) {
@@ -55,6 +52,10 @@ public class ManageStudyDefinitionViewModel {
                                                .map(s -> new StudyDatabase(s, true))
                                                .filter(studyDatabase -> !databases.contains(studyDatabase))
                                                .collect(Collectors.toList()));
+    }
+
+    public StringProperty getTitle() {
+        return title;
     }
 
     public ObservableList<String> getAuthors() {

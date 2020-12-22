@@ -44,7 +44,6 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
     @FXML private TextField newQuery;
     @FXML private ComboBox<StudyDatabase> databaseSelectorComboBox;
 
-    @FXML private Label disabledSave;
     private final Button saveButton;
 
     @FXML private Button addAuthorButton;
@@ -52,6 +51,7 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
     @FXML private Button addQueryButton;
     @FXML private Button addDatabaseButton;
     @FXML private ButtonType saveButtonType;
+    @FXML private Label helpIcon;
 
     @FXML private ListView<String> authorListView;
     @FXML private ListView<String> questionListView;
@@ -100,14 +100,16 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
         addQueryButton.setGraphic(IconTheme.JabRefIcons.ADD_ARTICLE.getGraphicNode());
         addDatabaseButton.setGraphic(IconTheme.JabRefIcons.ADD_ARTICLE.getGraphicNode());
         addQueryButton.setGraphic(IconTheme.JabRefIcons.ADD_ARTICLE.getGraphicNode());
+        helpIcon.setGraphic(IconTheme.JabRefIcons.HELP.getGraphicNode());
     }
 
     private void setButtonToolTips() {
-        addAuthorButton.setTooltip(new Tooltip("Add"));
-        addResearchQuestionButton.setTooltip(new Tooltip("Add"));
-        addQueryButton.setTooltip(new Tooltip("Add"));
-        addDatabaseButton.setTooltip(new Tooltip("Add"));
-        addQueryButton.setTooltip(new Tooltip("Add"));
+        addAuthorButton.setTooltip(new Tooltip(Localization.lang("Add")));
+        addResearchQuestionButton.setTooltip(new Tooltip(Localization.lang("Add")));
+        addQueryButton.setTooltip(new Tooltip(Localization.lang("Add")));
+        addDatabaseButton.setTooltip(new Tooltip(Localization.lang("Add")));
+        addQueryButton.setTooltip(new Tooltip(Localization.lang("Add")));
+        helpIcon.setTooltip(new Tooltip(Localization.lang("Query terms are seperated by spaces.\n All query terms are joined using logical ands.\n If the sequence of terms is relevant wrap them in double qoutes(\").")));
     }
 
     private void setDataForListViews() {
@@ -180,8 +182,11 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
         // Listen whether any databases are removed from selection -> Add back to the database selector
         databaseTableView.getItems().addListener(viewModel::handleChangeToDatabases);
         studyTitle.textProperty().bindBidirectional(viewModel.titleProperty());
-        saveButton.disableProperty().bind(Bindings.or(Bindings.isEmpty(viewModel.getQueries()), Bindings.isEmpty(viewModel.getDatabases())));
-        disabledSave.visibleProperty().bind(saveButton.disabledProperty());
+        saveButton.disableProperty().bind(Bindings.or(
+                Bindings.or(
+                    Bindings.or(Bindings.isEmpty(viewModel.getQueries()), Bindings.isEmpty(viewModel.getDatabases())),
+                        Bindings.isEmpty(viewModel.getAuthors())),
+                            Bindings.not(viewModel.getTitle().isEmpty())));
     }
 
     private void saveStudyDefinition() {
