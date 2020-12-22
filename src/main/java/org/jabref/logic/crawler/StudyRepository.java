@@ -120,7 +120,6 @@ class StudyRepository {
      *
      * @return Returns the BibEntries parsed from the study definition file.
      * @throws IOException    Problem opening the input stream.
-     * @throws ParseException Problem parsing the study definition file.
      */
     private Study parseStudyFile() throws IOException {
         return new StudyYAMLParser().parseStudyYAMLFile(studyDefinitionFile);

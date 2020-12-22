@@ -15,6 +15,7 @@ import org.jabref.logic.crawler.Crawler;
 import org.jabref.logic.crawler.git.GitHandler;
 import org.jabref.logic.exporter.SavePreferences;
 import org.jabref.logic.importer.ImportFormatPreferences;
+import org.jabref.logic.importer.ParseException;
 import org.jabref.logic.l10n.Localization;
 import org.jabref.model.entry.BibEntryTypesManager;
 import org.jabref.model.util.FileUpdateMonitor;
@@ -37,15 +38,15 @@ public class ExistingStudySearchAction extends SimpleCommand {
     private final ImportFormatPreferences importFormatPreferneces;
     private final SavePreferences savePreferences;
 
-    public ExistingStudySearchAction(JabRefFrame frame, FileUpdateMonitor fileUpdateMonitor, TaskExecutor taskExecutor, PreferencesService preferencesService, ImportFormatPreferences importFormatPreferences, SavePreferences savePreferences) {
+    public ExistingStudySearchAction(JabRefFrame frame, FileUpdateMonitor fileUpdateMonitor, TaskExecutor taskExecutor, PreferencesService preferencesService) {
         this.frame = frame;
         this.dialogService = frame.getDialogService();
         this.fileUpdateMonitor = fileUpdateMonitor;
-        this.workingDirectory = getInitialDirectory(frame.prefs().getWorkingDir());
+        this.workingDirectory = getInitialDirectory(preferencesService.getWorkingDir());
         this.taskExecutor = taskExecutor;
         this.preferencesService = preferencesService;
-        this.importFormatPreferneces = importFormatPreferences;
-        this.savePreferences = savePreferences;
+        this.importFormatPreferneces = preferencesService.getImportFormatPreferences();
+        this.savePreferences = preferencesService.getSavePreferences();
     }
 
     @Override
@@ -73,7 +74,7 @@ public class ExistingStudySearchAction extends SimpleCommand {
         final Crawler crawler;
         try {
             crawler = new Crawler(studyRepositoryRoot.get(), new GitHandler(studyRepositoryRoot.get()), fileUpdateMonitor, importFormatPreferneces, savePreferences, new BibEntryTypesManager());
-        } catch (IOException e) {
+        } catch (IOException | ParseException e) {
             LOGGER.error("Error during reading of study definition file.", e);
             dialogService.showErrorDialogAndWait(Localization.lang("Error during reading of study definition file."), e);
             return;
