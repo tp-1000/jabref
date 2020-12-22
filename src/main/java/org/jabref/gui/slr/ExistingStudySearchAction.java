@@ -13,10 +13,12 @@ import org.jabref.gui.util.DirectoryDialogConfiguration;
 import org.jabref.gui.util.TaskExecutor;
 import org.jabref.logic.crawler.Crawler;
 import org.jabref.logic.crawler.git.GitHandler;
+import org.jabref.logic.exporter.SavePreferences;
+import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.l10n.Localization;
 import org.jabref.model.entry.BibEntryTypesManager;
 import org.jabref.model.util.FileUpdateMonitor;
-import org.jabref.preferences.JabRefPreferences;
+import org.jabref.preferences.PreferencesService;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
@@ -31,13 +33,19 @@ public class ExistingStudySearchAction extends SimpleCommand {
     private final FileUpdateMonitor fileUpdateMonitor;
     private final Path workingDirectory;
     private final TaskExecutor taskExecutor;
+    private final PreferencesService preferencesService;
+    private final ImportFormatPreferences importFormatPreferneces;
+    private final SavePreferences savePreferences;
 
-    public ExistingStudySearchAction(JabRefFrame frame, FileUpdateMonitor fileUpdateMonitor, TaskExecutor taskExecutor) {
+    public ExistingStudySearchAction(JabRefFrame frame, FileUpdateMonitor fileUpdateMonitor, TaskExecutor taskExecutor, PreferencesService preferencesService, ImportFormatPreferences importFormatPreferences, SavePreferences savePreferences) {
         this.frame = frame;
         this.dialogService = frame.getDialogService();
         this.fileUpdateMonitor = fileUpdateMonitor;
         this.workingDirectory = getInitialDirectory(frame.prefs().getWorkingDir());
         this.taskExecutor = taskExecutor;
+        this.preferencesService = preferencesService;
+        this.importFormatPreferneces = importFormatPreferences;
+        this.savePreferences = savePreferences;
     }
 
     @Override
@@ -64,7 +72,7 @@ public class ExistingStudySearchAction extends SimpleCommand {
         }
         final Crawler crawler;
         try {
-            crawler = new Crawler(studyRepositoryRoot.get(), new GitHandler(studyRepositoryRoot.get()), fileUpdateMonitor, JabRefPreferences.getInstance().getImportFormatPreferences(), JabRefPreferences.getInstance().getSavePreferences(), new BibEntryTypesManager());
+            crawler = new Crawler(studyRepositoryRoot.get(), new GitHandler(studyRepositoryRoot.get()), fileUpdateMonitor, importFormatPreferneces, savePreferences, new BibEntryTypesManager());
         } catch (IOException e) {
             LOGGER.error("Error during reading of study definition file.", e);
             dialogService.showErrorDialogAndWait(Localization.lang("Error during reading of study definition file."), e);
@@ -79,7 +87,7 @@ public class ExistingStudySearchAction extends SimpleCommand {
                           LOGGER.error("Error during persistence of crawling results.");
                           dialogService.showErrorDialogAndWait(Localization.lang("Error during persistence of crawling results."), e);
                       })
-                      .onSuccess(unused -> new OpenDatabaseAction(frame).openFile(Path.of(studyRepositoryRoot.get().toString(), "studyResult.bib"), true))
+                      .onSuccess(unused -> new OpenDatabaseAction(frame, preferencesService, dialogService).openFile(Path.of(studyRepositoryRoot.get().toString(), "studyResult.bib"), true))
                       .executeWith(taskExecutor);
     }
 
