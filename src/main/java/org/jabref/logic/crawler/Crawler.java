@@ -8,6 +8,7 @@ import org.jabref.logic.crawler.git.GitHandler;
 import org.jabref.logic.exporter.SavePreferences;
 import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.importer.ParseException;
+import org.jabref.logic.preferences.TimestampPreferences;
 import org.jabref.model.entry.BibEntryTypesManager;
 import org.jabref.model.study.QueryResult;
 import org.jabref.model.util.FileUpdateMonitor;
@@ -30,8 +31,8 @@ public class Crawler {
      *
      * @param studyRepositoryRoot The path to the study repository
      */
-    public Crawler(Path studyRepositoryRoot, GitHandler gitHandler, FileUpdateMonitor fileUpdateMonitor, ImportFormatPreferences importFormatPreferences, SavePreferences savePreferences, BibEntryTypesManager bibEntryTypesManager) throws IllegalArgumentException, IOException, ParseException {
-        studyRepository = new StudyRepository(studyRepositoryRoot, gitHandler, importFormatPreferences, fileUpdateMonitor, savePreferences, bibEntryTypesManager);
+    public Crawler(Path studyRepositoryRoot, GitHandler gitHandler, FileUpdateMonitor fileUpdateMonitor, ImportFormatPreferences importFormatPreferences, SavePreferences savePreferences, TimestampPreferences timestampPreferences, BibEntryTypesManager bibEntryTypesManager) throws IllegalArgumentException, IOException, ParseException {
+        studyRepository = new StudyRepository(studyRepositoryRoot, gitHandler, importFormatPreferences, fileUpdateMonitor, savePreferences, timestampPreferences, bibEntryTypesManager);
         StudyDatabaseToFetcherConverter studyDatabaseToFetcherConverter = new StudyDatabaseToFetcherConverter(studyRepository.getActiveLibraryEntries(), importFormatPreferences);
         this.studyFetcher = new StudyFetcher(studyDatabaseToFetcherConverter.getActiveFetchers(), studyRepository.getSearchQueryStrings());
     }

@@ -42,7 +42,7 @@ Chosen option: Jackson, because as it is a dedicated library for parsing YAML. y
 
 * Good, because established YAML parser library
 * Good, because supports YAML 1.2
-* Bad, because cannot parse YAML into Java DTOs?
+* Bad, because cannot parse YAML into Java DTOs
 
 ### Own parser
 

@@ -73,7 +73,7 @@ public class ExistingStudySearchAction extends SimpleCommand {
         }
         final Crawler crawler;
         try {
-            crawler = new Crawler(studyRepositoryRoot.get(), new GitHandler(studyRepositoryRoot.get()), fileUpdateMonitor, importFormatPreferneces, savePreferences, new BibEntryTypesManager());
+            crawler = new Crawler(studyRepositoryRoot.get(), new GitHandler(studyRepositoryRoot.get()), fileUpdateMonitor, importFormatPreferneces, savePreferences, preferencesService.getTimestampPreferences(), new BibEntryTypesManager());
         } catch (IOException | ParseException e) {
             LOGGER.error("Error during reading of study definition file.", e);
             dialogService.showErrorDialogAndWait(Localization.lang("Error during reading of study definition file."), e);

@@ -19,6 +19,7 @@ import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.importer.OpenDatabase;
 import org.jabref.logic.importer.ParseException;
 import org.jabref.logic.importer.SearchBasedFetcher;
+import org.jabref.logic.preferences.TimestampPreferences;
 import org.jabref.model.database.BibDatabase;
 import org.jabref.model.database.BibDatabaseContext;
 import org.jabref.model.entry.BibEntryTypesManager;
@@ -53,6 +54,7 @@ class StudyRepository {
     private final ImportFormatPreferences importFormatPreferences;
     private final FileUpdateMonitor fileUpdateMonitor;
     private final SavePreferences savePreferences;
+    private final TimestampPreferences timestampPreferences;
     private final BibEntryTypesManager bibEntryTypesManager;
 
     /**
@@ -71,6 +73,7 @@ class StudyRepository {
                            ImportFormatPreferences importFormatPreferences,
                            FileUpdateMonitor fileUpdateMonitor,
                            SavePreferences savePreferences,
+                           TimestampPreferences timestampPreferences,
                            BibEntryTypesManager bibEntryTypesManager) throws IOException, ParseException {
         this.repositoryPath = pathToRepository;
         this.gitHandler = gitHandler;
@@ -83,6 +86,7 @@ class StudyRepository {
         this.fileUpdateMonitor = fileUpdateMonitor;
         this.studyDefinitionFile = Path.of(repositoryPath.toString(), STUDY_DEFINITION_FILE_NAME);
         this.savePreferences = savePreferences;
+        this.timestampPreferences = timestampPreferences;
         this.bibEntryTypesManager = bibEntryTypesManager;
 
         if (Files.notExists(repositoryPath)) {
@@ -98,21 +102,21 @@ class StudyRepository {
      * Returns entries stored in the repository for a certain query and fetcher
      */
     public BibDatabaseContext getFetcherResultEntries(String query, String fetcherName) throws IOException {
-        return OpenDatabase.loadDatabase(getPathToFetcherResultFile(query, fetcherName), importFormatPreferences, fileUpdateMonitor).getDatabaseContext();
+        return OpenDatabase.loadDatabase(getPathToFetcherResultFile(query, fetcherName), importFormatPreferences, timestampPreferences, fileUpdateMonitor).getDatabaseContext();
     }
 
     /**
      * Returns the merged entries stored in the repository for a certain query
      */
     public BibDatabaseContext getQueryResultEntries(String query) throws IOException {
-        return OpenDatabase.loadDatabase(getPathToQueryResultFile(query), importFormatPreferences, fileUpdateMonitor).getDatabaseContext();
+        return OpenDatabase.loadDatabase(getPathToQueryResultFile(query), importFormatPreferences, timestampPreferences, fileUpdateMonitor).getDatabaseContext();
     }
 
     /**
      * Returns the merged entries stored in the repository for all queries
      */
     public BibDatabaseContext getStudyResultEntries() throws IOException {
-        return OpenDatabase.loadDatabase(getPathToStudyResultFile(), importFormatPreferences, fileUpdateMonitor).getDatabaseContext();
+        return OpenDatabase.loadDatabase(getPathToStudyResultFile(), importFormatPreferences, timestampPreferences, fileUpdateMonitor).getDatabaseContext();
     }
 
     /**
@@ -122,7 +126,7 @@ class StudyRepository {
      * @throws IOException    Problem opening the input stream.
      */
     private Study parseStudyFile() throws IOException {
-        return new StudyYAMLParser().parseStudyYAMLFile(studyDefinitionFile);
+        return new StudyYamlParser().parseStudyYamlFile(studyDefinitionFile);
     }
 
     /**
@@ -170,7 +174,7 @@ class StudyRepository {
     }
 
     private void persistStudy() throws IOException {
-        new StudyYAMLParser().writeStudyYAMLFile(study, studyDefinitionFile);
+        new StudyYamlParser().writeStudyYamlFile(study, studyDefinitionFile);
     }
 
     /**
