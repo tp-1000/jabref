@@ -27,6 +27,7 @@ import org.jabref.model.study.FetchResult;
 import org.jabref.model.study.QueryResult;
 import org.jabref.model.study.Study;
 import org.jabref.model.study.StudyDatabase;
+import org.jabref.model.study.StudyQuery;
 import org.jabref.model.util.FileUpdateMonitor;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -137,6 +138,7 @@ class StudyRepository {
     public List<String> getSearchQueryStrings() {
         return study.getQueries()
                     .parallelStream()
+                    .map(StudyQuery::getQuery)
                     .collect(Collectors.toList());
     }
 

@@ -21,10 +21,10 @@ public class Study {
     private LocalDate lastSearchDate;
     @JsonProperty("research-questions")
     private List<String> researchQuestions;
-    private List<String> queries;
+    private List<StudyQuery> queries;
     private List<StudyDatabase> databases;
 
-    public Study(List<String> authors, String title, List<String> researchQuestions, List<String> queryEntries, List<StudyDatabase> databases) {
+    public Study(List<String> authors, String title, List<String> researchQuestions, List<StudyQuery> queryEntries, List<StudyDatabase> databases) {
         this.authors = authors;
         this.title = title;
         this.researchQuestions = researchQuestions;
@@ -46,11 +46,11 @@ public class Study {
         this.authors = authors;
     }
 
-    public List<String> getQueries() {
+    public List<StudyQuery> getQueries() {
         return queries;
     }
 
-    public void setQueries(List<String> queries) {
+    public void setQueries(List<StudyQuery> queries) {
         this.queries = queries;
     }
 

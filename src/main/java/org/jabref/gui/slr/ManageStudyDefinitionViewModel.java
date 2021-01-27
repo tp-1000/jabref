@@ -16,6 +16,7 @@ import org.jabref.logic.importer.SearchBasedFetcher;
 import org.jabref.logic.importer.WebFetchers;
 import org.jabref.model.study.Study;
 import org.jabref.model.study.StudyDatabase;
+import org.jabref.model.study.StudyQuery;
 
 /**
  * This class provides a model for managing study definitions.
@@ -40,7 +41,7 @@ public class ManageStudyDefinitionViewModel {
         title.setValue(study.getTitle());
         authors.addAll(study.getAuthors());
         researchQuestions.addAll(study.getResearchQuestions());
-        queries.addAll(study.getQueries());
+        queries.addAll(study.getQueries().stream().map(StudyQuery::getQuery).collect(Collectors.toList()));
         databases.addAll(study.getDatabases());
         computeNonSelectedDatabases(importFormatPreferences);
     }
@@ -116,7 +117,7 @@ public class ManageStudyDefinitionViewModel {
         study.setTitle(title.getValueSafe());
         study.setAuthors(authors);
         study.setResearchQuestions(researchQuestions);
-        study.setQueries(queries);
+        study.setQueries(queries.stream().map(StudyQuery::new).collect(Collectors.toList()));
         study.setDatabases(databases);
         return study;
     }

@@ -186,7 +186,7 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
                 Bindings.or(
                     Bindings.or(Bindings.isEmpty(viewModel.getQueries()), Bindings.isEmpty(viewModel.getDatabases())),
                         Bindings.isEmpty(viewModel.getAuthors())),
-                            Bindings.not(viewModel.getTitle().isEmpty())));
+                            viewModel.getTitle().isEmpty()));
     }
 
     private void saveStudyDefinition() {

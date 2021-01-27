@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 
 import org.jabref.logic.bibtex.FieldContentFormatterPreferences;
 import org.jabref.logic.citationkeypattern.CitationKeyGenerator;
@@ -158,7 +157,7 @@ class StudyRepositoryTest {
     void setsLastSearchDatePersistedCorrectly() throws Exception {
         List<QueryResult> mockResults = getMockResults();
 
-        getTestStudyRepository().persist(mockResults);
+        studyRepository.persist(mockResults);
 
         assertEquals(LocalDate.now(), getTestStudyRepository().getStudy().getLastSearchDate());
     }
@@ -173,10 +172,8 @@ class StudyRepositoryTest {
     }
 
     private StudyRepository getTestStudyRepository() throws Exception {
-        if (Objects.isNull(studyRepository)) {
-            setUpTestStudyDefinitionFile();
-            studyRepository = new StudyRepository(tempRepositoryDirectory, gitHandler, importFormatPreferences, new DummyFileUpdateMonitor(), savePreferences, timestampPreferences, entryTypesManager);
-        }
+        setUpTestStudyDefinitionFile();
+        studyRepository = new StudyRepository(tempRepositoryDirectory, gitHandler, importFormatPreferences, new DummyFileUpdateMonitor(), savePreferences, timestampPreferences, entryTypesManager);
         return studyRepository;
     }
 

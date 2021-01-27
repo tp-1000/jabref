@@ -6,9 +6,9 @@ research-questions:
   - Question1
   - Question2
 queries:
-  - Quantum
-  - Cloud Computing
-  - '"Software Engineering"'
+  - query: Quantum
+  - query: Cloud Computing
+  - query: '"Software Engineering"'
 databases:
   - name: Springer
   - name: ArXiv
