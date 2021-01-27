@@ -18,6 +18,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -86,6 +87,7 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
     private void initialize() {
         setButtonIcons();
         setButtonToolTips();
+        setKeyPressListenersForInputFields();
         setDataForListViews();
         setCellFactories();
         configureLayout();
@@ -110,6 +112,29 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
         addDatabaseButton.setTooltip(new Tooltip(Localization.lang("Add")));
         addQueryButton.setTooltip(new Tooltip(Localization.lang("Add")));
         helpIcon.setTooltip(new Tooltip(Localization.lang("Query terms are seperated by spaces.\n All query terms are joined using logical ands.\n If the sequence of terms is relevant wrap them in double qoutes(\").")));
+    }
+
+    private void setKeyPressListenersForInputFields() {
+        newAuthor.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                addAuthor();
+            }
+        });
+        newResearchQuestion.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                addResearchQuestion();
+            }
+        });
+        newQuery.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                addQuery();
+            }
+        });
+        databaseSelectorComboBox.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                addDatabase();
+            }
+        });
     }
 
     private void setDataForListViews() {
@@ -184,13 +209,9 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
         studyTitle.textProperty().bindBidirectional(viewModel.titleProperty());
         saveButton.disableProperty().bind(Bindings.or(
                 Bindings.or(
-                    Bindings.or(Bindings.isEmpty(viewModel.getQueries()), Bindings.isEmpty(viewModel.getDatabases())),
+                        Bindings.or(Bindings.isEmpty(viewModel.getQueries()), Bindings.isEmpty(viewModel.getDatabases())),
                         Bindings.isEmpty(viewModel.getAuthors())),
-                            viewModel.getTitle().isEmpty()));
-    }
-
-    private void saveStudyDefinition() {
-        viewModel.saveStudy();
+                viewModel.getTitle().isEmpty()));
     }
 
     @FXML
