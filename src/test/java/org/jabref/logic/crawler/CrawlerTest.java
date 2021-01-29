@@ -8,8 +8,8 @@ import java.nio.file.Path;
 import org.jabref.logic.bibtex.FieldContentFormatterPreferences;
 import org.jabref.logic.citationkeypattern.CitationKeyPatternPreferences;
 import org.jabref.logic.citationkeypattern.GlobalCitationKeyPattern;
-import org.jabref.logic.git.GitHandler;
 import org.jabref.logic.exporter.SavePreferences;
+import org.jabref.logic.git.GitHandler;
 import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.preferences.TimestampPreferences;
 import org.jabref.logic.util.io.FileUtil;
@@ -45,14 +45,7 @@ class CrawlerTest {
     @Test
     public void testWhetherAllFilesAreCreated() throws Exception {
         setUp();
-        Crawler testCrawler = new Crawler(getPathToStudyDefinitionFile(),
-                gitHandler,
-                new DummyFileUpdateMonitor(),
-                importFormatPreferences,
-                savePreferences,
-                timestampPreferences,
-                entryTypesManager
-        );
+        Crawler testCrawler = new Crawler(getPathToStudyDefinitionFile(), gitHandler, importFormatPreferences, savePreferences, timestampPreferences, entryTypesManager, new DummyFileUpdateMonitor());
 
         testCrawler.performCrawl();
 

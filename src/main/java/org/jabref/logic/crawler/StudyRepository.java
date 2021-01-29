@@ -6,15 +6,16 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.jabref.logic.citationkeypattern.CitationKeyGenerator;
-import org.jabref.logic.git.GitHandler;
 import org.jabref.logic.database.DatabaseMerger;
 import org.jabref.logic.exporter.BibtexDatabaseWriter;
 import org.jabref.logic.exporter.SavePreferences;
+import org.jabref.logic.git.GitHandler;
 import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.importer.OpenDatabase;
 import org.jabref.logic.importer.ParseException;
@@ -42,11 +43,15 @@ import org.slf4j.LoggerFactory;
  * as well as the sharing, and versioning of results using git.
  */
 class StudyRepository {
-    // Tests work with study.bib
+    // Tests work with study.yml
     private static final String STUDY_DEFINITION_FILE_NAME = "study.yml";
     private static final Logger LOGGER = LoggerFactory.getLogger(StudyRepository.class);
     private static final Pattern MATCHCOLON = Pattern.compile(":");
     private static final Pattern MATCHILLEGALCHARACTERS = Pattern.compile("[^A-Za-z0-9_.\\s=-]");
+    // Currently we make assumptions about the configuration: the remotes, work and search branch names
+    private static final String REMOTE = "origin";
+    private static final String WORK_BRANCH = "work";
+    private static final String SEARCH_BRANCH = "search";
 
     private final Path repositoryPath;
     private final Path studyDefinitionFile;
@@ -78,11 +83,6 @@ class StudyRepository {
                            BibEntryTypesManager bibEntryTypesManager) throws IOException, ParseException {
         this.repositoryPath = pathToRepository;
         this.gitHandler = gitHandler;
-        try {
-            gitHandler.updateLocalRepository();
-        } catch (GitAPIException e) {
-            LOGGER.error("Updating repository from remote failed");
-        }
         this.importFormatPreferences = importFormatPreferences;
         this.fileUpdateMonitor = fileUpdateMonitor;
         this.studyDefinitionFile = Path.of(repositoryPath.toString(), STUDY_DEFINITION_FILE_NAME);
@@ -94,6 +94,12 @@ class StudyRepository {
             throw new IOException("The given repository does not exists.");
         } else if (Files.notExists(studyDefinitionFile)) {
             throw new IOException("The study definition file does not exist in the given repository.");
+        }
+        try {
+            gitHandler.checkoutBranch(WORK_BRANCH);
+            updateWorkAndSearchBranch();
+        } catch (GitAPIException e) {
+            LOGGER.error("Remote is not configured correctly");
         }
         study = parseStudyFile();
         this.setUpRepositoryStructure();
@@ -160,20 +166,67 @@ class StudyRepository {
         return study;
     }
 
+    /**
+     * Persists the result locally and remotely by following the workflow:
+     * Precondition: Currently checking out work branch
+     * <ol>
+     *     <li>Commit any changes made to the working branch</li>
+     *     <li>Update the work and search branch</li>
+     *     <li>Persist the results on the search branch</li>
+     *     <li>Merge the new commit of the search branch into the work branch</li>
+     *     <li>Update the remote tracking branches of the work and search branch</li>
+     * </ol>
+     */
     public void persist(List<QueryResult> crawlResults) throws IOException, GitAPIException {
         try {
-            gitHandler.updateLocalRepository();
+            gitHandler.createCommitOnCurrentBranch("Save changes before searching.");
+            // Update the work and search branch
+            updateWorkAndSearchBranch();
         } catch (GitAPIException e) {
             LOGGER.error("Updating repository from remote failed");
         }
+        gitHandler.checkoutBranch(SEARCH_BRANCH);
         persistResults(crawlResults);
         study.setLastSearchDate(LocalDate.now());
         persistStudy();
         try {
-            gitHandler.updateRemoteRepository("Conducted search " + LocalDate.now());
+            // First commit changes to search branch branch and update remote
+            gitHandler.createCommitOnCurrentBranch("Conducted search: " + LocalDateTime.now());
+            // Merge search commit into working branch
+            gitHandler.mergeBranches(WORK_BRANCH, SEARCH_BRANCH);
+            // Update both remote tracked branches
+            updateRemoteSearchAndWorkBranch();
+            // Switch back to work branch
+            gitHandler.checkoutBranch(WORK_BRANCH);
         } catch (GitAPIException e) {
             LOGGER.error("Updating remote repository failed");
         }
+    }
+
+    /**
+     * Update the remote tracking branches of the work and search branches
+     * The currently checked out branch is not changed if the method is executed successfully
+     */
+    private void updateRemoteSearchAndWorkBranch() throws IOException, GitAPIException {
+        String currentBranch = gitHandler.getCurrentlyCheckedOutBranch();
+        gitHandler.checkoutBranch(SEARCH_BRANCH);
+        gitHandler.pushCommitsToRemoteRepository();
+        gitHandler.checkoutBranch(WORK_BRANCH);
+        gitHandler.pushCommitsToRemoteRepository();
+        gitHandler.checkoutBranch(currentBranch);
+    }
+
+    /**
+     * Updates the local work and search branches with changes from their tracking remote branches
+     * The currently checked out branch is not changed if the method is executed successfully
+     */
+    private void updateWorkAndSearchBranch() throws IOException, GitAPIException {
+        String currentBranch = gitHandler.getCurrentlyCheckedOutBranch();
+        gitHandler.checkoutBranch(SEARCH_BRANCH);
+        gitHandler.pullOnCurrentBranch();
+        gitHandler.checkoutBranch(WORK_BRANCH);
+        gitHandler.pullOnCurrentBranch();
+        gitHandler.checkoutBranch(currentBranch);
     }
 
     private void persistStudy() throws IOException {

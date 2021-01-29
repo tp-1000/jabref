@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.jabref.logic.crawler.git.GitHandler;
 import org.jabref.logic.exporter.SavePreferences;
+import org.jabref.logic.git.GitHandler;
 import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.importer.ParseException;
 import org.jabref.logic.preferences.TimestampPreferences;
@@ -32,7 +32,7 @@ public class Crawler {
      * @param studyDefinitionFile The path to the study definition file that contains the list of targeted E-Libraries
      *                            and used cross-library queries
      */
-    public Crawler(Path studyDefinitionFile, GitHandler gitHandler, FileUpdateMonitor fileUpdateMonitor, ImportFormatPreferences importFormatPreferences, SavePreferences savePreferences, TimestampPreferences timestampPreferences, BibEntryTypesManager bibEntryTypesManager) throws IllegalArgumentException, IOException, ParseException, GitAPIException {
+    public Crawler(Path studyDefinitionFile, GitHandler gitHandler, ImportFormatPreferences importFormatPreferences, SavePreferences savePreferences, TimestampPreferences timestampPreferences, BibEntryTypesManager bibEntryTypesManager, FileUpdateMonitor fileUpdateMonitor) throws IllegalArgumentException, IOException, ParseException, GitAPIException {
         Path studyRepositoryRoot = studyDefinitionFile.getParent();
         studyRepository = new StudyRepository(studyRepositoryRoot, gitHandler, importFormatPreferences, fileUpdateMonitor, savePreferences, timestampPreferences, bibEntryTypesManager);
         StudyDatabaseToFetcherConverter studyDatabaseToFetcherConverter = new StudyDatabaseToFetcherConverter(studyRepository.getActiveLibraryEntries(), importFormatPreferences);
@@ -42,6 +42,14 @@ public class Crawler {
     /**
      * This methods performs the crawling of the active libraries defined in the study definition file.
      * This method also persists the results in the same folder the study definition file is stored in.
+     *
+     * The whole process works as follows:
+     * <ol>
+     *     <li>Then the search is executed</li>
+     *     <li>The repository changes to the search branch</li>
+     *     <li>Afterwards, the results are persisted on the search branch.</li>
+     *     <li>Finally, the changes are merged into the work branch</li>
+     * </ol>
      *
      * @throws IOException Thrown if a problem occurred during the persistence of the result.
      */

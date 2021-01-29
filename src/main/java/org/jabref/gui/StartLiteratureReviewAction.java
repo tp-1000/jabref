@@ -10,8 +10,8 @@ import org.jabref.gui.util.BackgroundTask;
 import org.jabref.gui.util.FileDialogConfiguration;
 import org.jabref.gui.util.TaskExecutor;
 import org.jabref.logic.crawler.Crawler;
-import org.jabref.logic.git.GitHandler;
 import org.jabref.logic.exporter.SavePreferences;
+import org.jabref.logic.git.GitHandler;
 import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.importer.ParseException;
 import org.jabref.logic.l10n.Localization;
@@ -58,7 +58,7 @@ public class StartLiteratureReviewAction extends SimpleCommand {
         }
         final Crawler crawler;
         try {
-            crawler = new Crawler(studyDefinitionFile.get(), new GitHandler(studyDefinitionFile.get().getParent()), fileUpdateMonitor, importFormatPreferneces, savePreferences, preferencesService.getTimestampPreferences(), new BibEntryTypesManager());
+            crawler = new Crawler(studyDefinitionFile.get(), new GitHandler(studyDefinitionFile.get().getParent()), importFormatPreferneces, savePreferences, preferencesService.getTimestampPreferences(), new BibEntryTypesManager(), fileUpdateMonitor);
         } catch (IOException | ParseException | GitAPIException e) {
             LOGGER.error("Error during reading of study definition file.", e);
             dialogService.showErrorDialogAndWait(Localization.lang("Error during reading of study definition file."), e);
