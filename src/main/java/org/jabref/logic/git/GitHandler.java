@@ -40,7 +40,13 @@ public class GitHandler {
                 Git.init()
                    .setDirectory(repositoryPathAsFile)
                    .call();
-            } catch (GitAPIException e) {
+                try (Git git = Git.open(repositoryPathAsFile)) {
+                    git.commit()
+                       .setAllowEmpty(true)
+                       .setMessage("Initial commit")
+                       .call();
+                }
+            } catch (GitAPIException | IOException e) {
                 LOGGER.error("Initialization failed");
             }
         }
