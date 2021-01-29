@@ -14,7 +14,7 @@ import org.jabref.logic.bibtex.FieldContentFormatterPreferences;
 import org.jabref.logic.citationkeypattern.CitationKeyGenerator;
 import org.jabref.logic.citationkeypattern.CitationKeyPatternPreferences;
 import org.jabref.logic.citationkeypattern.GlobalCitationKeyPattern;
-import org.jabref.logic.crawler.git.GitHandler;
+import org.jabref.logic.git.GitHandler;
 import org.jabref.logic.database.DatabaseMerger;
 import org.jabref.logic.exporter.SavePreferences;
 import org.jabref.logic.importer.ImportFormatPreferences;

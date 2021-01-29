@@ -10,7 +10,7 @@ import org.jabref.gui.util.BackgroundTask;
 import org.jabref.gui.util.FileDialogConfiguration;
 import org.jabref.gui.util.TaskExecutor;
 import org.jabref.logic.crawler.Crawler;
-import org.jabref.logic.crawler.git.GitHandler;
+import org.jabref.logic.git.GitHandler;
 import org.jabref.logic.exporter.SavePreferences;
 import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.importer.ParseException;
