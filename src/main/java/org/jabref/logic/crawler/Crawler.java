@@ -29,11 +29,9 @@ public class Crawler {
     /**
      * Creates a crawler for retrieving studies from E-Libraries
      *
-     * @param studyDefinitionFile The path to the study definition file that contains the list of targeted E-Libraries
-     *                            and used cross-library queries
+     * @param studyRepositoryRoot The path to the study repository
      */
-    public Crawler(Path studyDefinitionFile, GitHandler gitHandler, ImportFormatPreferences importFormatPreferences, SavePreferences savePreferences, TimestampPreferences timestampPreferences, BibEntryTypesManager bibEntryTypesManager, FileUpdateMonitor fileUpdateMonitor) throws IllegalArgumentException, IOException, ParseException, GitAPIException {
-        Path studyRepositoryRoot = studyDefinitionFile.getParent();
+    public Crawler(Path studyRepositoryRoot, GitHandler gitHandler, ImportFormatPreferences importFormatPreferences, SavePreferences savePreferences, TimestampPreferences timestampPreferences, BibEntryTypesManager bibEntryTypesManager, FileUpdateMonitor fileUpdateMonitor) throws IllegalArgumentException, IOException, ParseException {
         studyRepository = new StudyRepository(studyRepositoryRoot, gitHandler, importFormatPreferences, fileUpdateMonitor, savePreferences, timestampPreferences, bibEntryTypesManager);
         StudyDatabaseToFetcherConverter studyDatabaseToFetcherConverter = new StudyDatabaseToFetcherConverter(studyRepository.getActiveLibraryEntries(), importFormatPreferences);
         this.studyFetcher = new StudyFetcher(studyDatabaseToFetcherConverter.getActiveFetchers(), studyRepository.getSearchQueryStrings());

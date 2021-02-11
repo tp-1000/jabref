@@ -88,7 +88,8 @@ public enum StandardActions implements Action {
     PARSE_LATEX(Localization.lang("Search for citations in LaTeX files..."), IconTheme.JabRefIcons.LATEX_CITATIONS),
     NEW_SUB_LIBRARY_FROM_AUX(Localization.lang("New sublibrary based on AUX file") + "...", Localization.lang("New BibTeX sublibrary") + Localization.lang("This feature generates a new library based on which entries are needed in an existing LaTeX document."), IconTheme.JabRefIcons.NEW),
     WRITE_XMP(Localization.lang("Write XMP metadata to PDFs"), Localization.lang("Will write XMP metadata to the PDFs linked from selected entries."), KeyBinding.WRITE_XMP),
-    START_SYSTEMATIC_LITERATURE_REVIEW(Localization.lang("Start systematic literature review")),
+    START_NEW_STUDY(Localization.lang("Start new systematic literature study")),
+    SEARCH_FOR_EXISTING_STUDY(Localization.lang("Perform search for existing systematic literature study")),
     OPEN_DATABASE_FOLDER(Localization.lang("Reveal in file explorer")),
     OPEN_FOLDER(Localization.lang("Open folder"), Localization.lang("Open folder"), IconTheme.JabRefIcons.FOLDER, KeyBinding.OPEN_FOLDER),
     OPEN_FILE(Localization.lang("Open file"), Localization.lang("Open file"), IconTheme.JabRefIcons.FILE, KeyBinding.OPEN_FILE),
@@ -127,7 +128,7 @@ public enum StandardActions implements Action {
     EDIT_STRINGS(Localization.lang("Edit string constants"), IconTheme.JabRefIcons.EDIT_STRINGS, KeyBinding.EDIT_STRINGS),
 
     FIND_DUPLICATES(Localization.lang("Find duplicates"), IconTheme.JabRefIcons.FIND_DUPLICATES),
-    MERGE_ENTRIES(Localization.lang("Merge entries"), IconTheme.JabRefIcons.MERGE_ENTRIES),
+    MERGE_ENTRIES(Localization.lang("Merge entries"), IconTheme.JabRefIcons.MERGE_ENTRIES, KeyBinding.MERGE_ENTRIES),
     RESOLVE_DUPLICATE_KEYS(Localization.lang("Resolve duplicate citation keys"), Localization.lang("Find and remove duplicate citation keys"), KeyBinding.RESOLVE_DUPLICATE_CITATION_KEYS),
     CHECK_INTEGRITY(Localization.lang("Check integrity"), KeyBinding.CHECK_INTEGRITY),
     FIND_UNLINKED_FILES(Localization.lang("Search for unlinked local files"), IconTheme.JabRefIcons.SEARCH, KeyBinding.FIND_UNLINKED_FILES),
