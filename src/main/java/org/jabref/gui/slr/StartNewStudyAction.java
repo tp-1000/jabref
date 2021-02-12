@@ -12,7 +12,6 @@ import org.jabref.model.study.Study;
 import org.jabref.model.util.FileUpdateMonitor;
 import org.jabref.preferences.PreferencesService;
 
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 public class StartNewStudyAction extends ExistingStudySearchAction {
@@ -28,9 +27,6 @@ public class StartNewStudyAction extends ExistingStudySearchAction {
     protected void setupRepository(Path studyRepositoryRoot) throws IOException, GitAPIException {
         StudyYamlParser studyYAMLParser = new StudyYamlParser();
         studyYAMLParser.writeStudyYamlFile(newStudy, studyRepositoryRoot.resolve("study.yml"));
-        Git.init()
-           .setDirectory(studyRepositoryRoot.toFile())
-           .call();
     }
 
     @Override
