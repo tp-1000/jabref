@@ -32,6 +32,7 @@ import org.jabref.model.study.StudyQuery;
 import org.jabref.model.util.FileUpdateMonitor;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.merge.MergeStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,42 +96,69 @@ class StudyRepository {
         } else if (Files.notExists(studyDefinitionFile)) {
             throw new IOException("The study definition file does not exist in the given repository.");
         }
+        study = parseStudyFile();
+        // Commit any changes to the work branch
         try {
             gitHandler.checkoutBranch(WORK_BRANCH);
+            gitHandler.createCommitOnCurrentBranch("Save changes before searching.");
+            // Update the work and search branch
             updateWorkAndSearchBranch();
         } catch (GitAPIException e) {
             LOGGER.error("Remote is not configured correctly");
         }
-        study = parseStudyFile();
-        this.setUpRepositoryStructure();
+        try {
+            gitHandler.checkoutBranch(SEARCH_BRANCH);
+            // If study definition does not exist on this branch, copy it
+            if (!Files.exists(studyDefinitionFile)) {
+                new StudyYamlParser().writeStudyYamlFile(study, studyDefinitionFile);
+            }
+            this.setUpRepositoryStructure();
+            gitHandler.createCommitOnCurrentBranch("Setup search branch");
+        } catch (GitAPIException e) {
+            LOGGER.error("Could not checkout search branch.");
+        }
+        try {
+            gitHandler.checkoutBranch(WORK_BRANCH);
+        } catch (GitAPIException e) {
+            LOGGER.error("Could not checkout work branch");
+        }
     }
 
     /**
      * Returns entries stored in the repository for a certain query and fetcher
      */
     public BibDatabaseContext getFetcherResultEntries(String query, String fetcherName) throws IOException {
-        return OpenDatabase.loadDatabase(getPathToFetcherResultFile(query, fetcherName), importFormatPreferences, timestampPreferences, fileUpdateMonitor).getDatabaseContext();
+        if (Files.exists(getPathToFetcherResultFile(query, fetcherName))) {
+            return OpenDatabase.loadDatabase(getPathToFetcherResultFile(query, fetcherName), importFormatPreferences, timestampPreferences, fileUpdateMonitor).getDatabaseContext();
+        }
+        return new BibDatabaseContext();
     }
 
     /**
      * Returns the merged entries stored in the repository for a certain query
      */
     public BibDatabaseContext getQueryResultEntries(String query) throws IOException {
-        return OpenDatabase.loadDatabase(getPathToQueryResultFile(query), importFormatPreferences, timestampPreferences, fileUpdateMonitor).getDatabaseContext();
+        if (Files.exists(getPathToQueryResultFile(query))) {
+            return OpenDatabase.loadDatabase(getPathToQueryResultFile(query), importFormatPreferences, timestampPreferences, fileUpdateMonitor).getDatabaseContext();
+        }
+        return new BibDatabaseContext();
     }
 
     /**
      * Returns the merged entries stored in the repository for all queries
      */
     public BibDatabaseContext getStudyResultEntries() throws IOException {
-        return OpenDatabase.loadDatabase(getPathToStudyResultFile(), importFormatPreferences, timestampPreferences, fileUpdateMonitor).getDatabaseContext();
+        if (Files.exists(getPathToStudyResultFile())) {
+            return OpenDatabase.loadDatabase(getPathToStudyResultFile(), importFormatPreferences, timestampPreferences, fileUpdateMonitor).getDatabaseContext();
+        }
+        return new BibDatabaseContext();
     }
 
     /**
      * The study definition file contains all the definitions of a study. This method extracts this study from the yaml study definition file
      *
      * @return Returns the BibEntries parsed from the study definition file.
-     * @throws IOException    Problem opening the input stream.
+     * @throws IOException Problem opening the input stream.
      */
     private Study parseStudyFile() throws IOException {
         return new StudyYamlParser().parseStudyYamlFile(studyDefinitionFile);
@@ -169,7 +197,6 @@ class StudyRepository {
      * Persists the result locally and remotely by following the workflow:
      * Precondition: Currently checking out work branch
      * <ol>
-     *     <li>Commit any changes made to the working branch</li>
      *     <li>Update the work and search branch</li>
      *     <li>Persist the results on the search branch</li>
      *     <li>Merge the new commit of the search branch into the work branch</li>
@@ -177,13 +204,6 @@ class StudyRepository {
      * </ol>
      */
     public void persist(List<QueryResult> crawlResults) throws IOException, GitAPIException {
-        try {
-            gitHandler.createCommitOnCurrentBranch("Save changes before searching.");
-            // Update the work and search branch
-            updateWorkAndSearchBranch();
-        } catch (GitAPIException e) {
-            LOGGER.error("Updating repository from remote failed");
-        }
         gitHandler.checkoutBranch(SEARCH_BRANCH);
         persistResults(crawlResults);
         study.setLastSearchDate(LocalDate.now());
@@ -192,7 +212,7 @@ class StudyRepository {
             // First commit changes to search branch branch and update remote
             gitHandler.createCommitOnCurrentBranch("Conducted search: " + LocalDateTime.now());
             // Merge search commit into working branch
-            gitHandler.mergeBranches(WORK_BRANCH, SEARCH_BRANCH);
+            gitHandler.mergeBranches(WORK_BRANCH, SEARCH_BRANCH, MergeStrategy.OURS);
             // Update both remote tracked branches
             updateRemoteSearchAndWorkBranch();
             // Switch back to work branch
@@ -375,6 +395,9 @@ class StudyRepository {
     }
 
     private void writeResultToFile(Path pathToFile, BibDatabase entries) throws IOException {
+        if (!Files.exists(pathToFile)) {
+            Files.createFile(pathToFile);
+        }
         try (Writer fileWriter = new FileWriter(pathToFile.toFile())) {
             BibtexDatabaseWriter databaseWriter = new BibtexDatabaseWriter(fileWriter, savePreferences, bibEntryTypesManager);
             databaseWriter.saveDatabase(new BibDatabaseContext(entries));

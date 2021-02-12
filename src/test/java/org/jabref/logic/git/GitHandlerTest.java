@@ -10,6 +10,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.AnyObjectId;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +45,7 @@ class GitHandlerTest {
         gitHandler.createCommitOnCurrentBranch("Commit on branch1");
         gitHandler.checkoutBranch("branch2");
         Files.createFile(Paths.get(repositoryPath.toString(), "Test2.txt"));
-        gitHandler.mergeBranches("branch2", "branch1");
+        gitHandler.mergeBranches("branch2", "branch1", MergeStrategy.RECURSIVE);
         assertTrue(Files.exists(Paths.get(repositoryPath.toString(), "Test1.txt")) &&
                 Files.exists(Paths.get(repositoryPath.toString(), "Test2.txt"))
         );

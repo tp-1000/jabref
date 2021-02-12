@@ -2,7 +2,9 @@ package org.jabref.logic.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 import org.eclipse.jgit.api.Git;
@@ -10,10 +12,9 @@ import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.RepositoryCache;
+import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.jgit.util.FS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,8 +54,9 @@ public class GitHandler {
     }
 
     private boolean isGitRepository() {
-        // From https://www.eclipse.org/lists/jgit-dev/msg01892.html
-        return RepositoryCache.FileKey.isGitRepository(repositoryPathAsFile, FS.DETECTED);
+        // For some reason the solution from https://www.eclipse.org/lists/jgit-dev/msg01892.html does not work
+        // This solution is quite simple but might not work in special cases, for us it should suffice.
+        return Files.exists(Paths.get(repositoryPath.toString(), ".git"));
     }
 
     /**
@@ -93,7 +95,7 @@ public class GitHandler {
      * @param targetBranch the name of the branch that is merged into
      * @param sourceBranch the name of the branch that gets merged
      */
-    public void mergeBranches(String targetBranch, String sourceBranch) throws IOException, GitAPIException {
+    public void mergeBranches(String targetBranch, String sourceBranch, MergeStrategy mergeStrategy) throws IOException, GitAPIException {
         String currentBranch = this.getCurrentlyCheckedOutBranch();
         try (Git git = Git.open(this.repositoryPathAsFile)) {
             Optional<Ref> searchBranch = getRefForBranch(sourceBranch);
@@ -104,6 +106,7 @@ public class GitHandler {
             this.checkoutBranch(targetBranch);
             git.merge()
                .include(searchBranch.get())
+               .setStrategy(mergeStrategy)
                .setMessage("Merge search branch into working branch.")
                .call();
         }
