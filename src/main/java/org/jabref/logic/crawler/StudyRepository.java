@@ -93,19 +93,18 @@ class StudyRepository {
 
         if (Files.notExists(repositoryPath)) {
             throw new IOException("The given repository does not exists.");
-        } else if (Files.notExists(studyDefinitionFile)) {
+        }
+        try {
+            gitHandler.createCommitOnCurrentBranch("Save changes before searching.");
+            gitHandler.checkoutBranch(WORK_BRANCH);
+            updateWorkAndSearchBranch();
+        } catch (GitAPIException e) {
+            LOGGER.error("Could not checkout work branch");
+        }
+        if (Files.notExists(studyDefinitionFile)) {
             throw new IOException("The study definition file does not exist in the given repository.");
         }
         study = parseStudyFile();
-        // Commit any changes to the work branch
-        try {
-            gitHandler.checkoutBranch(WORK_BRANCH);
-            gitHandler.createCommitOnCurrentBranch("Save changes before searching.");
-            // Update the work and search branch
-            updateWorkAndSearchBranch();
-        } catch (GitAPIException e) {
-            LOGGER.error("Remote is not configured correctly");
-        }
         try {
             gitHandler.checkoutBranch(SEARCH_BRANCH);
             // If study definition does not exist on this branch, copy it
@@ -194,7 +193,7 @@ class StudyRepository {
     }
 
     /**
-     * Persists the result locally and remotely by following the workflow:
+     * Persists the result locally and remotely by following the steps:
      * Precondition: Currently checking out work branch
      * <ol>
      *     <li>Update the work and search branch</li>
@@ -204,6 +203,7 @@ class StudyRepository {
      * </ol>
      */
     public void persist(List<QueryResult> crawlResults) throws IOException, GitAPIException {
+        updateWorkAndSearchBranch();
         gitHandler.checkoutBranch(SEARCH_BRANCH);
         persistResults(crawlResults);
         study.setLastSearchDate(LocalDate.now());
