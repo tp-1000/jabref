@@ -2,10 +2,13 @@ package org.jabref.logic.git;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+
+import org.jabref.logic.util.io.FileUtil;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RmCommand;
@@ -47,9 +50,21 @@ public class GitHandler {
                        .setMessage("Initial commit")
                        .call();
                 }
+                setupGitIgnore();
             } catch (GitAPIException | IOException e) {
                 LOGGER.error("Initialization failed");
             }
+        }
+    }
+
+    private void setupGitIgnore() {
+        try {
+            Path gitignore = Path.of(repositoryPath.toString(), ".gitignore");
+            if (!Files.exists(gitignore)) {
+                FileUtil.copyFile(Path.of(this.getClass().getResource("git.gitignore").toURI()), gitignore, false);
+            }
+        } catch (URISyntaxException e) {
+            LOGGER.error("Error occurred during copying of the gitignore file into the git repository.");
         }
     }
 
