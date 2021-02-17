@@ -41,13 +41,13 @@ class GitHandlerTest {
     @Test
     void mergeBranches() throws IOException, GitAPIException {
         gitHandler.checkoutBranch("branch1");
-        Files.createFile(Paths.get(repositoryPath.toString(), "Test1.txt"));
+        Files.createFile(Path.of(repositoryPath.toString(), "Test1.txt"));
         gitHandler.createCommitOnCurrentBranch("Commit on branch1");
         gitHandler.checkoutBranch("branch2");
-        Files.createFile(Paths.get(repositoryPath.toString(), "Test2.txt"));
+        Files.createFile(Path.of(repositoryPath.toString(), "Test2.txt"));
         gitHandler.mergeBranches("branch2", "branch1", MergeStrategy.RECURSIVE);
-        assertTrue(Files.exists(Paths.get(repositoryPath.toString(), "Test1.txt")) &&
-                Files.exists(Paths.get(repositoryPath.toString(), "Test2.txt"))
+        assertTrue(Files.exists(Path.of(repositoryPath.toString(), "Test1.txt")) &&
+                Files.exists(Path.of(repositoryPath.toString(), "Test2.txt"))
         );
     }
 
@@ -55,7 +55,7 @@ class GitHandlerTest {
     void createCommitOnCurrentBranch() throws IOException, GitAPIException {
         try (Git git = Git.open(repositoryPath.toFile())) {
             // Create commit
-            Files.createFile(Paths.get(repositoryPath.toString(), "Test.txt"));
+            Files.createFile(Path.of(repositoryPath.toString(), "Test.txt"));
             gitHandler.createCommitOnCurrentBranch("TestCommit");
 
             AnyObjectId head = git.getRepository().resolve(Constants.HEAD);
