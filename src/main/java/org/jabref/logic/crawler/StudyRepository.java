@@ -107,12 +107,13 @@ class StudyRepository {
         study = parseStudyFile();
         try {
             gitHandler.checkoutBranch(SEARCH_BRANCH);
-            // If study definition does not exist on this branch, copy it
-            if (!Files.exists(studyDefinitionFile)) {
+            // If study definition does not exist on this branch or was changed on work branch, copy it from work
+            boolean studyDefinitionDoesNotExistOrChanged = !Files.exists(studyDefinitionFile) || new StudyYamlParser().parseStudyYamlFile(studyDefinitionFile).equals(study);
+            if (studyDefinitionDoesNotExistOrChanged) {
                 new StudyYamlParser().writeStudyYamlFile(study, studyDefinitionFile);
             }
             this.setUpRepositoryStructure();
-            gitHandler.createCommitOnCurrentBranch("Setup search branch");
+            gitHandler.createCommitOnCurrentBranch("Setup or update search branch");
         } catch (GitAPIException e) {
             LOGGER.error("Could not checkout search branch.");
         }
