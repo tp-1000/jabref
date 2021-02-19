@@ -113,14 +113,14 @@ public class GitHandler {
     public void mergeBranches(String targetBranch, String sourceBranch, MergeStrategy mergeStrategy) throws IOException, GitAPIException {
         String currentBranch = this.getCurrentlyCheckedOutBranch();
         try (Git git = Git.open(this.repositoryPathAsFile)) {
-            Optional<Ref> searchBranch = getRefForBranch(sourceBranch);
-            if (searchBranch.isEmpty()) {
+            Optional<Ref> sourceBranchRef = getRefForBranch(sourceBranch);
+            if (sourceBranchRef.isEmpty()) {
                 // Do nothing
                 return;
             }
             this.checkoutBranch(targetBranch);
             git.merge()
-               .include(searchBranch.get())
+               .include(sourceBranchRef.get())
                .setStrategy(mergeStrategy)
                .setMessage("Merge search branch into working branch.")
                .call();
