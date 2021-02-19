@@ -108,12 +108,12 @@ class StudyRepository {
         try {
             gitHandler.checkoutBranch(SEARCH_BRANCH);
             // If study definition does not exist on this branch or was changed on work branch, copy it from work
-            boolean studyDefinitionDoesNotExistOrChanged = !Files.exists(studyDefinitionFile) || new StudyYamlParser().parseStudyYamlFile(studyDefinitionFile).equals(study);
+            boolean studyDefinitionDoesNotExistOrChanged = !(Files.exists(studyDefinitionFile) && new StudyYamlParser().parseStudyYamlFile(studyDefinitionFile).equalsBesideLastSearchDate(study));
             if (studyDefinitionDoesNotExistOrChanged) {
                 new StudyYamlParser().writeStudyYamlFile(study, studyDefinitionFile);
             }
             this.setUpRepositoryStructure();
-            gitHandler.createCommitOnCurrentBranch("Setup or update search branch");
+            gitHandler.createCommitOnCurrentBranch("Setup search branch");
         } catch (GitAPIException e) {
             LOGGER.error("Could not checkout search branch.");
         }
@@ -213,7 +213,7 @@ class StudyRepository {
             // First commit changes to search branch branch and update remote
             gitHandler.createCommitOnCurrentBranch("Conducted search: " + LocalDateTime.now());
             // Merge search commit into working branch
-            gitHandler.mergeBranches(WORK_BRANCH, SEARCH_BRANCH, MergeStrategy.OURS);
+            gitHandler.mergeBranches(WORK_BRANCH, SEARCH_BRANCH, MergeStrategy.RESOLVE);
             // Update both remote tracked branches
             updateRemoteSearchAndWorkBranch();
             // Switch back to work branch

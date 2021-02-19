@@ -1,6 +1,9 @@
 package org.jabref.gui.slr;
 
+import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.StringJoiner;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -23,8 +26,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 
+import org.jabref.gui.DialogService;
 import org.jabref.gui.icon.IconTheme;
 import org.jabref.gui.util.BaseDialog;
+import org.jabref.gui.util.DirectoryDialogConfiguration;
 import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.l10n.Localization;
 import org.jabref.model.study.Study;
@@ -36,7 +41,7 @@ import com.airhacks.afterburner.views.ViewLoader;
  * This class controls the user interface of the study definition management dialog. The UI elements and their layout are
  * defined in the FXML file.
  */
-public class ManageStudyDefinitionView extends BaseDialog<Study> {
+public class ManageStudyDefinitionView extends BaseDialog<SlrStudyAndDirectory> {
     private final ManageStudyDefinitionViewModel viewModel;
 
     @FXML private TextField studyTitle;
@@ -44,6 +49,7 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
     @FXML private TextField newResearchQuestion;
     @FXML private TextField newQuery;
     @FXML private ComboBox<StudyDatabase> databaseSelectorComboBox;
+    @FXML private TextField studyDirectory;
 
     private final Button saveButton;
 
@@ -51,6 +57,7 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
     @FXML private Button addResearchQuestionButton;
     @FXML private Button addQueryButton;
     @FXML private Button addDatabaseButton;
+    @FXML private Button selectStudyDirectory;
     @FXML private ButtonType saveButtonType;
     @FXML private Label helpIcon;
 
@@ -63,21 +70,30 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
     @FXML private TableColumn<StudyDatabase, StudyDatabase> enabledTableEntry;
     @FXML private TableColumn<StudyDatabase, StudyDatabase> removeTableEntry;
 
-    public ManageStudyDefinitionView(Study study, ImportFormatPreferences importFormatPreferences) {
+    Path workingDirectory;
+    DialogService dialogService;
+
+    /**
+     * This can be used to either create new study objects or edit existing ones.
+     *
+     * @param study null if a new study is created. Otherwise the study object to edit.
+     * @param studyDirectory the directory where the study to edit is located (null if a new study is created)
+     */
+    public ManageStudyDefinitionView(Study study, Path studyDirectory, ImportFormatPreferences importFormatPreferences, DialogService dialogService, Path workingDirectory) {
         this.setTitle(Localization.lang("Manage study definition"));
-        viewModel = new ManageStudyDefinitionViewModel(study, importFormatPreferences);
+        // If an existing study is edited, open the directory dialog at the directory the study is stored
+        this.workingDirectory = Objects.isNull(studyDirectory) ? workingDirectory : studyDirectory;
+        this.dialogService = dialogService;
+        viewModel = new ManageStudyDefinitionViewModel(study, studyDirectory,importFormatPreferences);
         ViewLoader.view(this).load().setAsDialogPane(this);
 
         saveButton = ((Button) this.getDialogPane().lookupButton(saveButtonType));
-        if (Objects.isNull(study)) {
-            // If this is a new study the next step after this dialog is to select the root of the new study repository
-            saveButton.setText(Localization.lang("Select study repository root"));
-        }
 
         setResultConverter(button -> {
             if (button == saveButtonType) {
                 return viewModel.saveStudy();
             }
+            // Cancel button will return null
             return null;
         });
         registerListenersAndBindings();
@@ -102,6 +118,7 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
         addQueryButton.setGraphic(IconTheme.JabRefIcons.ADD_ARTICLE.getGraphicNode());
         addDatabaseButton.setGraphic(IconTheme.JabRefIcons.ADD_ARTICLE.getGraphicNode());
         addQueryButton.setGraphic(IconTheme.JabRefIcons.ADD_ARTICLE.getGraphicNode());
+        selectStudyDirectory.setGraphic(IconTheme.JabRefIcons.FILE.getGraphicNode());
         helpIcon.setGraphic(IconTheme.JabRefIcons.HELP.getGraphicNode());
     }
 
@@ -111,7 +128,7 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
         addQueryButton.setTooltip(new Tooltip(Localization.lang("Add")));
         addDatabaseButton.setTooltip(new Tooltip(Localization.lang("Add")));
         addQueryButton.setTooltip(new Tooltip(Localization.lang("Add")));
-        helpIcon.setTooltip(new Tooltip(Localization.lang("Query terms are seperated by spaces.\n All query terms are joined using logical ands.\n If the sequence of terms is relevant wrap them in double qoutes(\").")));
+        helpIcon.setTooltip(new Tooltip(new StringJoiner("\n").add(Localization.lang("Query terms are separated by spaces.")).add(Localization.lang("All query terms are joined using the logical AND, and OR operators.")).add(Localization.lang("If the sequence of terms is relevant wrap them in double quotes (\").")).toString()));
     }
 
     private void setKeyPressListenersForInputFields() {
@@ -207,11 +224,12 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
         // Listen whether any databases are removed from selection -> Add back to the database selector
         databaseTableView.getItems().addListener(viewModel::handleChangeToDatabases);
         studyTitle.textProperty().bindBidirectional(viewModel.titleProperty());
-        saveButton.disableProperty().bind(Bindings.or(
+        studyDirectory.textProperty().bindBidirectional(viewModel.getDirectory());
+        saveButton.disableProperty().bind(Bindings.or(Bindings.or(
                 Bindings.or(
                         Bindings.or(Bindings.isEmpty(viewModel.getQueries()), Bindings.isEmpty(viewModel.getDatabases())),
                         Bindings.isEmpty(viewModel.getAuthors())),
-                viewModel.getTitle().isEmpty()));
+                viewModel.getTitle().isEmpty()), viewModel.getDirectory().isEmpty()));
     }
 
     @FXML
@@ -238,6 +256,16 @@ public class ManageStudyDefinitionView extends BaseDialog<Study> {
     @FXML
     private void addDatabase() {
         viewModel.addDatabase(databaseSelectorComboBox.getSelectionModel().getSelectedItem());
+    }
+
+    @FXML
+    public void selectStudyDirectory() {
+        DirectoryDialogConfiguration directoryDialogConfiguration = new DirectoryDialogConfiguration.Builder()
+                .withInitialDirectory(workingDirectory)
+                .build();
+
+        Optional<Path> studyRepositoryRoot = dialogService.showDirectorySelectionDialog(directoryDialogConfiguration);
+        viewModel.getDirectory().setValue(studyRepositoryRoot.isPresent() ? studyRepositoryRoot.get().toString() : viewModel.getDirectory().getValueSafe());
     }
 
     private static class StringCellWithDelete extends ListCell<String> {

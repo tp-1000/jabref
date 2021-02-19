@@ -1,5 +1,7 @@
 package org.jabref.gui.slr;
 
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -18,11 +20,16 @@ import org.jabref.model.study.Study;
 import org.jabref.model.study.StudyDatabase;
 import org.jabref.model.study.StudyQuery;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This class provides a model for managing study definitions.
  * To visualize the model one can bind the properties to UI elements.
  */
 public class ManageStudyDefinitionViewModel {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ManageStudyDefinitionViewModel.class);
+
     private final StringProperty title = new SimpleStringProperty();
     private final ObservableList<String> authors = FXCollections.observableArrayList();
     private final ObservableList<String> researchQuestions = FXCollections.observableArrayList();
@@ -30,9 +37,10 @@ public class ManageStudyDefinitionViewModel {
     private final ObservableList<StudyDatabase> databases = FXCollections.observableArrayList();
     // Hold the complement of databases for the selector
     private final ObservableList<StudyDatabase> nonSelectedDatabases = FXCollections.observableArrayList();
+    private final SimpleStringProperty directory = new SimpleStringProperty();
     private Study study;
 
-    public ManageStudyDefinitionViewModel(Study study, ImportFormatPreferences importFormatPreferences) {
+    public ManageStudyDefinitionViewModel(Study study, Path studyDirectory, ImportFormatPreferences importFormatPreferences) {
         if (Objects.isNull(study)) {
             computeNonSelectedDatabases(importFormatPreferences);
             return;
@@ -44,6 +52,9 @@ public class ManageStudyDefinitionViewModel {
         queries.addAll(study.getQueries().stream().map(StudyQuery::getQuery).collect(Collectors.toList()));
         databases.addAll(study.getDatabases());
         computeNonSelectedDatabases(importFormatPreferences);
+        if(!Objects.isNull(studyDirectory)) {
+            this.directory.set(studyDirectory.toString());
+        }
     }
 
     private void computeNonSelectedDatabases(ImportFormatPreferences importFormatPreferences) {
@@ -57,6 +68,10 @@ public class ManageStudyDefinitionViewModel {
 
     public StringProperty getTitle() {
         return title;
+    }
+
+    public StringProperty getDirectory() {
+        return directory;
     }
 
     public ObservableList<String> getAuthors() {
@@ -110,7 +125,7 @@ public class ManageStudyDefinitionViewModel {
         }
     }
 
-    public Study saveStudy() {
+    public SlrStudyAndDirectory saveStudy() {
         if (Objects.isNull(study)) {
             study = new Study();
         }
@@ -119,7 +134,13 @@ public class ManageStudyDefinitionViewModel {
         study.setResearchQuestions(researchQuestions);
         study.setQueries(queries.stream().map(StudyQuery::new).collect(Collectors.toList()));
         study.setDatabases(databases);
-        return study;
+        Path studyDirectory = null;
+        try {
+            studyDirectory = Path.of(directory.getValueSafe());
+        } catch (InvalidPathException e) {
+            LOGGER.error("Invalid path was provided: {}", directory);
+        }
+        return new SlrStudyAndDirectory(study, studyDirectory);
     }
 
     /**

@@ -2,6 +2,7 @@ package org.jabref.gui.slr;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.jabref.gui.DialogService;
@@ -29,14 +30,16 @@ public class ExistingStudySearchAction extends SimpleCommand {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExistingStudySearchAction.class);
 
     protected final DialogService dialogService;
+    protected final Path workingDirectory;
 
     private final JabRefFrame frame;
     private final FileUpdateMonitor fileUpdateMonitor;
-    private final Path workingDirectory;
     private final TaskExecutor taskExecutor;
     private final PreferencesService preferencesService;
     private final ImportFormatPreferences importFormatPreferneces;
     private final SavePreferences savePreferences;
+    // This can be either populated before crawl is called or is populated in the call using the directory dialog. This is helpful if the directory is selected in a previous dialog/UI element
+    Path studyDirectory;
 
     public ExistingStudySearchAction(JabRefFrame frame, FileUpdateMonitor fileUpdateMonitor, TaskExecutor taskExecutor, PreferencesService preferencesService) {
         this.frame = frame;
@@ -55,25 +58,29 @@ public class ExistingStudySearchAction extends SimpleCommand {
     }
 
     public void crawl() {
-        DirectoryDialogConfiguration directoryDialogConfiguration = new DirectoryDialogConfiguration.Builder()
-                .withInitialDirectory(workingDirectory)
-                .build();
+        if (Objects.isNull(studyDirectory)) {
+            DirectoryDialogConfiguration directoryDialogConfiguration = new DirectoryDialogConfiguration.Builder()
+                    .withInitialDirectory(workingDirectory)
+                    .build();
 
-        Optional<Path> studyRepositoryRoot = dialogService.showDirectorySelectionDialog(directoryDialogConfiguration);
-        if (studyRepositoryRoot.isEmpty()) {
-            // Do nothing if selection was canceled
-            return;
+            Optional<Path> studyRepositoryRoot = dialogService.showDirectorySelectionDialog(directoryDialogConfiguration);
+
+            if (studyRepositoryRoot.isEmpty()) {
+                // Do nothing if selection was canceled
+                return;
+            }
+            studyDirectory = studyRepositoryRoot.get();
         }
 
         try {
-            setupRepository(studyRepositoryRoot.get());
+            setupRepository(studyDirectory);
         } catch (IOException | GitAPIException e) {
             dialogService.showErrorDialogAndWait(Localization.lang("Study repository could not be created"), e);
             return;
         }
         final Crawler crawler;
         try {
-            crawler = new Crawler(studyRepositoryRoot.get(), new GitHandler(studyRepositoryRoot.get()), importFormatPreferneces, savePreferences, preferencesService.getTimestampPreferences(), new BibEntryTypesManager(), fileUpdateMonitor);
+            crawler = new Crawler(studyDirectory, new GitHandler(studyDirectory), importFormatPreferneces, savePreferences, preferencesService.getTimestampPreferences(), new BibEntryTypesManager(), fileUpdateMonitor);
         } catch (IOException | ParseException e) {
             LOGGER.error("Error during reading of study definition file.", e);
             dialogService.showErrorDialogAndWait(Localization.lang("Error during reading of study definition file."), e);
@@ -88,7 +95,11 @@ public class ExistingStudySearchAction extends SimpleCommand {
                           LOGGER.error("Error during persistence of crawling results.");
                           dialogService.showErrorDialogAndWait(Localization.lang("Error during persistence of crawling results."), e);
                       })
-                      .onSuccess(unused -> new OpenDatabaseAction(frame, preferencesService, dialogService).openFile(Path.of(studyRepositoryRoot.get().toString(), "studyResult.bib"), true))
+                      .onSuccess(unused -> {
+                          new OpenDatabaseAction(frame, preferencesService, dialogService).openFile(Path.of(studyDirectory.toString(), "studyResult.bib"), true);
+                          // If  finished reset command object for next use
+                          studyDirectory = null;
+                      })
                       .executeWith(taskExecutor);
     }
 

@@ -31,11 +31,14 @@ public class StartNewStudyAction extends ExistingStudySearchAction {
 
     @Override
     public void execute() {
-        Optional<Study> createdStudy = dialogService.showCustomDialogAndWait(new ManageStudyDefinitionView(null, importFormatPreferences));
-        if (createdStudy.isEmpty()) {
+        Optional<SlrStudyAndDirectory> studyAndDirectory = dialogService.showCustomDialogAndWait(new ManageStudyDefinitionView(null, null, importFormatPreferences, dialogService, workingDirectory));
+        if (studyAndDirectory.isEmpty()) {
             return;
         }
-        newStudy = createdStudy.get();
+        if (!studyAndDirectory.get().getStudyDirectory().toString().isBlank()) {
+            studyDirectory = studyAndDirectory.get().getStudyDirectory();
+        }
+        newStudy = studyAndDirectory.get().getStudy();
         crawl();
     }
 }
