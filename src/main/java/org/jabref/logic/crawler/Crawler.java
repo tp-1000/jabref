@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.jabref.logic.exporter.SaveException;
 import org.jabref.logic.exporter.SavePreferences;
 import org.jabref.logic.git.GitHandler;
 import org.jabref.logic.importer.ImportFormatPreferences;
@@ -51,7 +52,7 @@ public class Crawler {
      *
      * @throws IOException Thrown if a problem occurred during the persistence of the result.
      */
-    public void performCrawl() throws IOException, GitAPIException {
+    public void performCrawl() throws IOException, GitAPIException, SaveException {
         List<QueryResult> results = studyFetcher.crawl();
         studyRepository.persist(results);
     }

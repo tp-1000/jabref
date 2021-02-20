@@ -3,6 +3,8 @@ package org.jabref.logic.crawler;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -13,13 +15,16 @@ import java.util.stream.Collectors;
 
 import org.jabref.logic.citationkeypattern.CitationKeyGenerator;
 import org.jabref.logic.database.DatabaseMerger;
+import org.jabref.logic.exporter.AtomicFileWriter;
 import org.jabref.logic.exporter.BibtexDatabaseWriter;
+import org.jabref.logic.exporter.SaveException;
 import org.jabref.logic.exporter.SavePreferences;
 import org.jabref.logic.git.GitHandler;
 import org.jabref.logic.importer.ImportFormatPreferences;
 import org.jabref.logic.importer.OpenDatabase;
 import org.jabref.logic.importer.ParseException;
 import org.jabref.logic.importer.SearchBasedFetcher;
+import org.jabref.logic.l10n.Localization;
 import org.jabref.logic.preferences.TimestampPreferences;
 import org.jabref.model.database.BibDatabase;
 import org.jabref.model.database.BibDatabaseContext;
@@ -35,6 +40,8 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.jabref.gui.Globals.entryTypesManager;
 
 /**
  * This class manages all aspects of the study process related to the repository.
@@ -203,7 +210,7 @@ class StudyRepository {
      *     <li>Update the remote tracking branches of the work and search branch</li>
      * </ol>
      */
-    public void persist(List<QueryResult> crawlResults) throws IOException, GitAPIException {
+    public void persist(List<QueryResult> crawlResults) throws IOException, GitAPIException, SaveException {
         updateWorkAndSearchBranch();
         gitHandler.checkoutBranch(SEARCH_BRANCH);
         persistResults(crawlResults);
@@ -219,7 +226,7 @@ class StudyRepository {
             // Switch back to work branch
             gitHandler.checkoutBranch(WORK_BRANCH);
         } catch (GitAPIException e) {
-            LOGGER.error("Updating remote repository failed");
+            LOGGER.error("Updating remote repository failed", e);
         }
     }
 
@@ -353,7 +360,7 @@ class StudyRepository {
      *
      * @param crawlResults The results that shall be persisted.
      */
-    private void persistResults(List<QueryResult> crawlResults) throws IOException {
+    private void persistResults(List<QueryResult> crawlResults) throws IOException, SaveException {
         DatabaseMerger merger = new DatabaseMerger(importFormatPreferences.getKeywordSeparator());
         BibDatabase newStudyResultEntries = new BibDatabase();
 
@@ -395,13 +402,21 @@ class StudyRepository {
         targetEntries.getEntries().stream().filter(bibEntry -> !bibEntry.hasCitationKey()).forEach(citationKeyGenerator::generateAndSetKey);
     }
 
-    private void writeResultToFile(Path pathToFile, BibDatabase entries) throws IOException {
+    private void writeResultToFile(Path pathToFile, BibDatabase entries) throws IOException, SaveException {
         if (!Files.exists(pathToFile)) {
             Files.createFile(pathToFile);
         }
         try (Writer fileWriter = new FileWriter(pathToFile.toFile())) {
             BibtexDatabaseWriter databaseWriter = new BibtexDatabaseWriter(fileWriter, savePreferences, bibEntryTypesManager);
             databaseWriter.saveDatabase(new BibDatabaseContext(entries));
+        }
+        try (AtomicFileWriter fileWriter = new AtomicFileWriter(pathToFile, savePreferences.getEncoding(), savePreferences.shouldMakeBackup())) {
+            BibtexDatabaseWriter databaseWriter = new BibtexDatabaseWriter(fileWriter, savePreferences, entryTypesManager);
+            databaseWriter.saveDatabase(new BibDatabaseContext(entries));
+        } catch (UnsupportedCharsetException ex) {
+            throw new SaveException(Localization.lang("Character encoding '%0' is not supported.", savePreferences.getEncoding().displayName()), ex);
+        } catch (IOException ex) {
+            throw new SaveException("Problems saving: " + ex, ex);
         }
     }
 
