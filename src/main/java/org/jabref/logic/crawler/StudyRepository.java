@@ -218,13 +218,14 @@ class StudyRepository {
         persistStudy();
         try {
             // First commit changes to search branch branch and update remote
-            gitHandler.createCommitOnCurrentBranch("Conducted search: " + LocalDateTime.now());
+            String commitMessage = "Conducted search: " + LocalDateTime.now();
+            gitHandler.createCommitOnCurrentBranch(commitMessage);
             // Merge search commit into working branch
-            gitHandler.mergeBranches(WORK_BRANCH, SEARCH_BRANCH, MergeStrategy.RESOLVE);
+            String newSearchResultsPatch = gitHandler.calculateDiffOfBranchHeadAndLastCommitWithChanges(SEARCH_BRANCH);
+            gitHandler.checkoutBranch(WORK_BRANCH);
+            gitHandler.applyPatchOnCurrentBranch(newSearchResultsPatch, commitMessage);
             // Update both remote tracked branches
             updateRemoteSearchAndWorkBranch();
-            // Switch back to work branch
-            gitHandler.checkoutBranch(WORK_BRANCH);
         } catch (GitAPIException e) {
             LOGGER.error("Updating remote repository failed", e);
         }

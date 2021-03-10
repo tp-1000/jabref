@@ -1,11 +1,18 @@
 package org.jabref.logic.git;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.jabref.logic.util.io.FileUtil;
@@ -14,10 +21,19 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.EditList;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
+import org.eclipse.jgit.patch.Patch;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.util.io.DisabledOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,27 +121,57 @@ public class GitHandler {
     }
 
     /**
-     * Merges the source branch into the target branch
+     * Calculates the diff between the HEAD and HEAD^ of a specific branch with the name of the branch provided.
      *
-     * @param targetBranch the name of the branch that is merged into
-     * @param sourceBranch the name of the branch that gets merged
+     * @param sourceBranch The name of the branch that is the target of the calculation
+     * @return Returns the patch (diff) between the head of the sourceBranch and its previous commit HEAD^1
      */
-    public void mergeBranches(String targetBranch, String sourceBranch, MergeStrategy mergeStrategy) throws IOException, GitAPIException {
-        String currentBranch = this.getCurrentlyCheckedOutBranch();
+    public String calculateDiffOfBranchHeadAndLastCommitWithChanges(String sourceBranch) throws IOException, GitAPIException {
         try (Git git = Git.open(this.repositoryPathAsFile)) {
             Optional<Ref> sourceBranchRef = getRefForBranch(sourceBranch);
             if (sourceBranchRef.isEmpty()) {
-                // Do nothing
-                return;
+                return "";
             }
-            this.checkoutBranch(targetBranch);
-            git.merge()
-               .include(sourceBranchRef.get())
-               .setStrategy(mergeStrategy)
-               .setMessage("Merge search branch into working branch.")
+            Repository repository = git.getRepository();
+            ObjectId branchHead = sourceBranchRef.get().getObjectId();
+            ObjectId treeIdHead = repository.resolve(branchHead.getName() + "^{tree}");
+            ObjectId treeIdHeadParent = repository.resolve(branchHead.getName() + "~1^{tree}");
+
+            try (ObjectReader reader = repository.newObjectReader()) {
+                CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
+                oldTreeIter.reset(reader, treeIdHeadParent);
+                CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
+                newTreeIter.reset(reader, treeIdHead);
+
+                ByteArrayOutputStream put = new ByteArrayOutputStream();
+                try (DiffFormatter formatter = new DiffFormatter(put)) {
+                    formatter.setRepository(git.getRepository());
+                    List<DiffEntry> entries = formatter.scan(oldTreeIter, newTreeIter);
+                    Map<String, EditList> edits = new HashMap<>();
+                    Patch patch = new Patch();
+                    for (DiffEntry entry : entries) {
+                        formatter.format(entry);
+                    }
+                    return put.toString();
+                }
+            }
+        }
+    }
+
+    /**
+     * Applies the provided patch on the current branch
+     *
+     * @param patch the patch (diff) as a string
+     */
+    public void applyPatchOnCurrentBranch(String patch, String patchMessage) throws IOException, GitAPIException {
+        try (Git git = Git.open(this.repositoryPathAsFile)) {
+            git.apply()
+               .setPatch(new ByteArrayInputStream(patch.getBytes(StandardCharsets.UTF_8)))
+               .call();
+            git.commit()
+               .setMessage(patchMessage)
                .call();
         }
-        this.checkoutBranch(currentBranch);
     }
 
     public void createCommitOnCurrentBranch(String commitMessage) throws IOException, GitAPIException {
