@@ -1,10 +1,17 @@
 package org.jabref.gui.maintable;
 
+import java.beans.EventHandler;
+import java.io.Console;
+import java.util.Optional;
+
 import javax.swing.undo.UndoManager;
 
+import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.input.KeyEvent;
 
 import org.jabref.gui.ClipBoardManager;
 import org.jabref.gui.DialogService;
@@ -17,6 +24,7 @@ import org.jabref.gui.actions.StandardActions;
 import org.jabref.gui.edit.CopyMoreAction;
 import org.jabref.gui.edit.EditAction;
 import org.jabref.gui.exporter.ExportToClipboardAction;
+import org.jabref.gui.keyboard.KeyBinding;
 import org.jabref.gui.keyboard.KeyBindingRepository;
 import org.jabref.gui.linkedfile.AttachFileAction;
 import org.jabref.gui.menus.ChangeEntryTypeMenu;
@@ -80,6 +88,16 @@ public class RightClickMenu {
         // ToDo: Refactor BasePanel, see ahead.
         contextMenu.getItems().add(factory.createMenuItem(StandardActions.MERGE_ENTRIES, new MergeEntriesAction(libraryTab.frame(), dialogService, stateManager)));
 
+        return disableMenuKeyShortCuts(contextMenu);
+    }
+
+    /**
+     * This is used to resolve an issue with overlapping accelerator key combinations, calling actions twice.
+     * Shortcuts are swallowed by the handler, and only make it to the main menu bar.
+     * If the context menu has a unique menuItem, shortcuts to it will also be blocked.
+     */
+    private static ContextMenu disableMenuKeyShortCuts(ContextMenu contextMenu) {
+        contextMenu.addEventHandler(ActionEvent.ACTION, event -> event.consume());
         return contextMenu;
     }
 
